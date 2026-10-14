@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#070708" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Momentum" />
+    <title>Momentum · Daily Rituals & Circle</title>
+
+    <!-- Dynamic App Icon & Manifest Injection -->
+    <link id="dynamicFavicon" rel="icon" type="image/png" />
+    <link id="dynamicAppleIcon" rel="apple-touch-icon" />
+    <link id="dynamicManifest" rel="manifest" />
+
+    <!-- Fonts: Instrument Serif, Plus Jakarta Sans, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#070708',
+                        stone: '#0E0E11',
+                        elevated: '#15151A',
+                        alabaster: '#F4F3EF',
+                        muted: '#8E8D8A',
+                        gold: '#D4AF37',
+                        goldSoft: 'rgba(212, 175, 55, 0.14)',
+                        sage: '#34D399',
+                        sageSoft: 'rgba(52, 211, 153, 0.14)'
+                    },
+                    fontFamily: {
+                        serif: ['"Instrument Serif"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #070708;
+            background-image:
+                radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.08), transparent 55%),
+                radial-gradient(circle at 85% 90%, rgba(52, 211, 153, 0.04), transparent 45%);
+            color: #F4F3EF;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+        .zen-card {
+            background: linear-gradient(180deg, rgba(22, 22, 27, 0.88) 0%, rgba(14, 14, 17, 0.94) 100%);
+            border: 1px solid rgba(244, 243, 239, 0.07);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+        }
+        .zen-pill {
+            background: rgba(20, 20, 25, 0.85);
+            border: 1px solid rgba(244, 243, 239, 0.08);
+        }
+        .gold-glow {
+            box-shadow: 0 0 35px rgba(212, 175, 55, 0.15);
+        }
+        .tab-btn-active {
+            background: rgba(212, 175, 55, 0.14);
+            color: #F4F3EF;
+            border-color: rgba(212, 175, 55, 0.45);
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070708;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232329;
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-gold/30 selection:text-alabaster pb-24">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-obsidian/80 border-b border-white/[0.06]">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <!-- Brand Identity -->
+            <div class="flex items-center gap-3">
+                <button id="installAppBtn" onclick="triggerNativeInstall()" title="Install App to Device" class="w-9 h-9 rounded-xl bg-stone border border-gold/40 flex items-center justify-center shadow-inner group transition hover:border-gold">
+                    <span class="font-serif text-xl text-gold tracking-tight group-hover:scale-105 transition">M</span>
+                </button>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-serif text-2xl tracking-wide text-alabaster leading-none">Momentum</h1>
+                        <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400/80" title="Connecting to Firebase..."></span>
+                    </div>
+                    <p id="headerDateLabel" class="font-mono text-[11px] uppercase tracking-widest text-muted mt-0.5">SANCTUARY</p>
+                </div>
+            </div>
+
+            <!-- 3-Tab Switcher (Today · Circle · Metrics) -->
+            <nav class="flex items-center gap-1 p-1 rounded-2xl bg-stone border border-white/[0.06]">
+                <button onclick="switchTab('today')" id="tabBtn-today" class="tab-btn-active px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide border border-transparent transition">
+                    Today
+                </button>
+                <button onclick="switchTab('circle')" id="tabBtn-circle" class="px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition flex items-center gap-1.5">
+                    <span>Circle</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold"></span>
+                </button>
+                <button onclick="switchTab('metrics')" id="tabBtn-metrics" class="px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition">
+                    Metrics
+                </button>
+            </nav>
+
+            <!-- Add Ritual Button -->
+            <button onclick="openHabitModal()" class="px-3.5 py-2 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold text-xs font-medium tracking-wide transition flex items-center gap-1.5">
+                <span class="text-base leading-none">+</span>
+                <span class="hidden sm:inline">Ritual</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+
+        <!-- ===============================================================
+             TAB 1: TODAY (ZEN FOCUS DECK & MINIMAL CHECKLIST)
+             =============================================================== -->
+        <section id="tab-today" class="space-y-6">
+            <!-- Daily Score Hero Banner -->
+            <div class="zen-card rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-[11px] uppercase tracking-[0.2em] text-gold">Daily Alignment</span>
+                        <span id="dueCounterBadge" class="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white/[0.05] text-muted">0 remaining</span>
+                    </div>
+                    <h2 id="zenGreeting" class="font-serif text-3xl sm:text-4xl text-alabaster tracking-normal">Quiet consistency compounds.</h2>
+                    <p class="text-xs text-muted">Complete your daily rituals before midnight to lock in your Circle score.</p>
+                </div>
+
+                <!-- Daily Aggregate Score Ring -->
+                <div class="flex items-center gap-4 self-start sm:self-center bg-obsidian/60 px-5 py-3.5 rounded-2xl border border-white/[0.06]">
+                    <div>
+                        <div class="font-mono text-[10px] uppercase tracking-widest text-muted">Today's Score</div>
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                            <span id="todayAggregateScore" class="font-serif text-4xl text-gold leading-none">0</span>
+                            <span class="font-mono text-xs text-muted">/ 100</span>
+                        </div>
+                    </div>
+                    <div class="h-10 w-[1px] bg-white/[0.08]"></div>
+                    <div>
+                        <div class="font-mono text-[10px] uppercase tracking-widest text-muted">Weekly</div>
+                        <div id="todayWeeklyScore" class="font-mono text-lg text-alabaster mt-0.5">0 pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Toggle Bar (Focus Deck vs List View) -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1 p-1 rounded-xl bg-stone border border-white/[0.06]">
+                    <button id="modeBtn-focus" onclick="setReviewMode('focus')" class="px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition">
+                        Focus Card
+                    </button>
+                    <button id="modeBtn-list" onclick="setReviewMode('list')" class="px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition">
+                        All Rituals
+                    </button>
+                </div>
+
+                <div class="font-mono text-[11px] text-muted">
+                    <span class="hidden sm:inline">Shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">Space</kbd> Complete · <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">1</kbd> Skip</span>
+                </div>
+            </div>
+
+            <!-- Focus Card Container -->
+            <div id="focusDeckContainer" class="zen-card rounded-3xl p-7 sm:p-10 text-center space-y-7 relative overflow-hidden">
+                <!-- Populated dynamically by JS -->
+            </div>
+
+            <!-- Minimalist List Container -->
+            <div id="habitListContainer" class="hidden space-y-2.5">
+                <!-- Populated dynamically by JS -->
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             TAB 2: CIRCLE (GOOGLE SIGN-IN + FRIEND LEADERBOARD)
+             =============================================================== -->
+        <section id="tab-circle" class="hidden space-y-6">
+            <!-- Google Account & Cloud Sync Bar -->
+            <div class="zen-card rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div id="authAvatar" class="w-12 h-12 rounded-full bg-gold/15 border border-gold/40 flex items-center justify-center font-serif text-xl text-gold overflow-hidden shrink-0">
+                        M
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="authUserName" class="font-medium text-alabaster text-base">Local Sanctuary</h3>
+                            <span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30" id="myFriendCodeBadge">CODE</span>
+                        </div>
+                        <p id="authUserSub" class="text-xs text-muted mt-0.5">Sign in with Google to sync your daily score with your Circle</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <button id="googleSignInBtn" onclick="handleGoogleSignIn()" class="px-4 py-2.5 rounded-xl bg-alabaster text-obsidian font-medium text-xs hover:bg-white transition flex items-center gap-2 shadow-lg">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"/>
+                        </svg>
+                        <span>Sign in with Google</span>
+                    </button>
+                    <button id="signOutBtn" onclick="handleSignOut()" class="hidden px-3.5 py-2 rounded-xl bg-stone border border-white/10 text-xs text-muted hover:text-alabaster transition">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reset Timers & Add Friend Code Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="zen-card rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="font-mono text-[10px] uppercase tracking-widest text-muted block">Midnight Score Lock</span>
+                        <span id="midnightCountdown" class="font-mono text-lg text-alabaster mt-0.5 block">00:00:00</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono text-[10px] uppercase tracking-widest text-muted block">Weekly Reset (Mon)</span>
+                        <span id="weeklyResetCountdown" class="font-mono text-xs text-gold mt-1 block">--d --h</span>
+                    </div>
+                </div>
+
+                <!-- Add Friend by Code or Share Invite -->
+                <div class="zen-card rounded-2xl p-4 flex items-center gap-2">
+                    <input id="friendCodeInput" type="text" maxlength="8" placeholder="Enter Friend Code..." class="w-full bg-obsidian/70 border border-white/[0.08] rounded-xl px-3 py-2 text-xs font-mono uppercase text-alabaster placeholder:text-muted focus:outline-none focus:border-gold" />
+                    <button onclick="filterOrHighlightFriend()" class="px-3.5 py-2 rounded-xl bg-gold/15 border border-gold/40 text-gold text-xs font-medium shrink-0 hover:bg-gold/25 transition">
+                        Add
+                    </button>
+                    <button onclick="copyInviteLink()" title="Copy Circle Invite Link" class="px-3 py-2 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 transition shrink-0">
+                        Share
+                    </button>
+                </div>
+            </div>
+
+            <!-- Circle Leaderboard Standing -->
+            <div class="zen-card rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                    <div>
+                        <h3 class="font-serif text-2xl text-alabaster">Circle Standings</h3>
+                        <p class="text-xs text-muted">Ranked by weekly cumulative consistency (0–100 pts daily max)</p>
+                    </div>
+                    <button onclick="syncMyScoreToCloud(true)" class="font-mono text-[11px] text-gold hover:underline">
+                        Sync Now ↻
+                    </button>
+                </div>
+
+                <div id="circleLeaderboardList" class="space-y-2.5">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             TAB 3: METRICS (7-DAY MATRIX & 28-DAY CONSISTENCY HEATMAP)
+             =============================================================== -->
+        <section id="tab-metrics" class="hidden space-y-6">
+            <!-- Summary Telemetry Strip -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                <div class="zen-card rounded-2xl p-4">
+                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">Active Streak</span>
+                    <div id="metricBestStreak" class="font-serif text-3xl text-gold mt-1">0 days</div>
+                </div>
+                <div class="zen-card rounded-2xl p-4">
+                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">7-Day Rate</span>
+                    <div id="metricWeeklyRate" class="font-serif text-3xl text-alabaster mt-1">0%</div>
+                </div>
+                <div class="zen-card rounded-2xl p-4">
+                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">Total Check-ins</span>
+                    <div id="metricTotalCheckins" class="font-serif text-3xl text-sage mt-1">0</div>
+                </div>
+            </div>
+
+            <!-- 7-Day Ritual Matrix -->
+            <div class="zen-card rounded-3xl p-6 space-y-4 overflow-x-auto">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-serif text-2xl text-alabaster">7-Day Ritual Matrix</h3>
+                    <span class="font-mono text-[11px] text-muted">Tap any day cell to toggle</span>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr id="matrixHeaderRow" class="border-b border-white/[0.06] font-mono text-[10px] uppercase text-muted">
+                            <!-- Populated by JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="matrixBodyRows" class="divide-y divide-white/[0.05] text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 28-Day Consistency Heatmap -->
+            <div class="zen-card rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-serif text-2xl text-alabaster">28-Day Consistency Field</h3>
+                        <p class="text-xs text-muted">Intensity reflects daily aggregate score (0 to 100)</p>
+                    </div>
+                    <span class="font-mono text-[11px] text-gold">Last 4 Weeks</span>
+                </div>
+                <div id="heatmapGrid" class="grid grid-cols-7 gap-2 pt-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===============================================================
+         MODAL: ADD NEW RITUAL
+         =============================================================== -->
+    <div id="habitModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-md p-4">
+        <div class="zen-card rounded-3xl max-w-md w-full p-6 space-y-5 border border-white/10">
+            <div class="flex items-center justify-between">
+                <h3 class="font-serif text-2xl text-alabaster">New Daily Ritual</h3>
+                <button onclick="closeHabitModal()" class="text-muted hover:text-alabaster text-sm">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Ritual Name</label>
+                    <input id="newHabitTitle" type="text" placeholder="e.g. Deep Work Block (90m)" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-alabaster focus:outline-none focus:border-gold" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Symbol</label>
+                        <input id="newHabitIcon" type="text" maxlength="2" value="✦" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-center text-alabaster focus:outline-none focus:border-gold" />
+                    </div>
+                    <div>
+                        <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Category</label>
+                        <select id="newHabitCategory" class="w-full bg-obsidian border border-white/10 rounded-xl px-3 py-2.5 text-sm text-alabaster focus:outline-none focus:border-gold">
+                            <option value="Mind">Mind</option>
+                            <option value="Body">Body</option>
+                            <option value="Craft">Craft</option>
+                            <option value="Spirit">Spirit</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button onclick="closeHabitModal()" class="px-4 py-2 rounded-xl text-xs text-muted hover:text-alabaster">Cancel</button>
+                <button onclick="saveNewHabit()" class="px-5 py-2.5 rounded-xl bg-gold text-obsidian font-semibold text-xs hover:opacity-95 transition">Create Ritual</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subtle Toast Notification -->
+    <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-2">
+        <div id="toastMessage" class="px-4 py-2.5 rounded-2xl bg-stone/95 border border-gold/40 text-alabaster text-xs font-mono shadow-2xl">
+            Ready
+        </div>
+    </div>
+
+    <!-- ===============================================================
+         MAIN APPLICATION & FIREBASE SCRIPT
+         =============================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        /***********************************************************************
+         * 1. DYNAMIC ENSO APP ICON & PWA MANIFEST GENERATOR
+         ***********************************************************************/
+        let deferredInstallPrompt = null;
+
+        function generateZenAppIcon() {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                // Obsidian Rounded Background
+                ctx.fillStyle = '#070708';
+                ctx.fillRect(0, 0, 512, 512);
+
+                // Subtle radial gold glow
+                const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 240);
+                grad.addColorStop(0, 'rgba(212, 175, 55, 0.22)');
+                grad.addColorStop(1, 'rgba(7, 7, 8, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 512, 512);
+
+                // Kintsugi Gold Enso Ring
+                ctx.strokeStyle = '#D4AF37';
+                ctx.lineWidth = 22;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.arc(256, 256, 168, 0.35, Math.PI * 1.88);
+                ctx.stroke();
+
+                // Center Serif Monogram
+                ctx.fillStyle = '#F4F3EF';
+                ctx.font = 'italic 210px Georgia, serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('M', 256, 266);
+
+                const iconDataUrl = canvas.toDataURL('image/png');
+                document.getElementById('dynamicFavicon').href = iconDataUrl;
+                document.getElementById('dynamicAppleIcon').href = iconDataUrl;
+
+                const manifest = {
+                    name: 'Momentum · Daily Rituals & Circle',
+                    short_name: 'Momentum',
+                    start_url: '.',
+                    display: 'standalone',
+                    background_color: '#070708',
+                    theme_color: '#070708',
+                    icons: [
+                        { src: iconDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                    ]
+                };
+                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                document.getElementById('dynamicManifest').href = URL.createObjectURL(blob);
+            } catch (e) {}
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+        });
+
+        window.triggerNativeInstall = async function() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                await deferredInstallPrompt.userChoice;
+                deferredInstallPrompt = null;
+            } else {
+                showToast('Tip: Use browser menu -> "Install App" or "Add to Home Screen"');
+            }
+        };
+
+        /***********************************************************************
+         * 2. STATE & DATE UTILITIES
+         ***********************************************************************/
+        const STORAGE_KEY = 'momentum_zen_state_v4';
+
+        function formatLocalISO(d) {
+            const yr = d.getFullYear();
+            const mo = String(d.getMonth() + 1).padStart(2, '0');
+            const da = String(d.getDate()).padStart(2, '0');
+            return `${yr}-${mo}-${da}`;
+        }
+
+        function getTodayISO() {
+            return formatLocalISO(new Date());
+        }
+
+        function getMondayISO(refDate = new Date()) {
+            const d = new Date(refDate);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            return formatLocalISO(d);
+        }
+
+        function generateFriendCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let out = '';
+            for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+            return out;
+        }
+
+        const defaultHabits = [
+            { id: 'h1', title: 'Deep Quantitative & Code Sprint', icon: '✦', category: 'Craft', history: {} },
+            { id: 'h2', title: 'Conversational German Practice', icon: '◈', category: 'Mind', history: {} },
+            { id: 'h3', title: 'Strength & Mobility Training', icon: '◎', category: 'Body', history: {} },
+            { id: 'h4', title: 'Zero-Screen Wind Down before 11 PM', icon: '☾', category: 'Spirit', history: {} }
+        ];
+
+        let state = {
+            activeTab: 'today',
+            reviewMode: 'focus',
+            skippedToday: [],
+            profile: {
+                name: 'You',
+                code: generateFriendCode(),
+                photoURL: ''
+            },
+            habits: defaultHabits,
+            pinnedFriends: [],
+            cloudCircle: []
+        };
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state = {
+                        ...state,
+                        ...parsed,
+                        profile: { ...state.profile, ...(parsed.profile || {}) },
+                        habits: Array.isArray(parsed.habits) && parsed.habits.length ? parsed.habits : defaultHabits
+                    };
+                }
+            } catch (e) {}
+            document.getElementById('myFriendCodeBadge').textContent = state.profile.code;
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    reviewMode: state.reviewMode,
+                    profile: state.profile,
+                    habits: state.habits,
+                    pinnedFriends: state.pinnedFriends
+                }));
+            } catch (e) {}
+        }
+
+        /***********************************************************************
+         * 3. SCORE & STREAK ENGINE
+         ***********************************************************************/
+        function computeDailyAggregateScore(isoDate = getTodayISO()) {
+            if (!state.habits.length) return 0;
+            const done = state.habits.filter(h => h.history && h.history[isoDate]).length;
+            return Math.round((done / state.habits.length) * 100);
+        }
+
+        function computeWeeklyAggregateScore(refDate = new Date()) {
+            const monday = new Date(getMondayISO(refDate) + 'T00:00:00');
+            let total = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                total += computeDailyAggregateScore(formatLocalISO(d));
+            }
+            return total;
+        }
+
+        function computeActiveStreak(habit) {
+            let streak = 0;
+            const cursor = new Date();
+            const todayKey = formatLocalISO(cursor);
+            if (!habit.history?.[todayKey]) {
+                cursor.setDate(cursor.getDate() - 1);
+            }
+            while (true) {
+                const key = formatLocalISO(cursor);
+                if (habit.history && habit.history[key]) {
+                    streak++;
+                    cursor.setDate(cursor.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        /***********************************************************************
+         * 4. FIREBASE AUTH & FIRESTORE CIRCLE SYNC (WIRED TO MOMENTUM-HABIT-8B6BE)
+         ***********************************************************************/
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let unsubscribeLeaderboard = null;
+        const appId = 'momentum-habit-8b6be';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAQc" + "A1SE5Z3NszImP0KE63MmyXznSedfg",
+            authDomain: "momentum-habit-8b6be.firebaseapp.com",
+            projectId: "momentum-habit-8b6be",
+            storageBucket: "momentum-habit-8b6be.firebasestorage.app",
+            messagingSenderId: "935913257470",
+            appId: "1:935913257470:web:946e3aa1e2b5ecc27c68af",
+            measurementId: "G-EMXLQTSDYC"
+        };
+
+        async function initFirebase() {
+            const dot = document.getElementById('cloudStatusDot');
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    updateAuthBarUI(user);
+                    if (dot) {
+                        dot.className = user
+                            ? 'w-2 h-2 rounded-full bg-sage shadow-[0_0_8px_#34D399]'
+                            : 'w-2 h-2 rounded-full bg-gold';
+                        dot.title = user ? 'Connected & Signed In' : 'Firebase Ready · Sign in on Circle tab';
+                    }
+                    subscribeToCloudCircle();
+                    if (user) {
+                        syncMyScoreToCloud();
+                    }
+                });
+            } catch (err) {
+                console.warn('Firebase initialization warning:', err);
+                if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+            }
+        }
+
+        function updateAuthBarUI(user) {
+            const nameEl = document.getElementById('authUserName');
+            const subEl = document.getElementById('authUserSub');
+            const avatarEl = document.getElementById('authAvatar');
+            const signInBtn = document.getElementById('googleSignInBtn');
+            const signOutBtn = document.getElementById('signOutBtn');
+
+            if (user && !user.isAnonymous) {
+                if (user.displayName) {
+                    state.profile.name = user.displayName;
+                    state.profile.photoURL = user.photoURL || '';
+                    saveState();
+                }
+                nameEl.textContent = user.displayName || state.profile.name || 'Signed In';
+                subEl.textContent = `Live Circle Sync Active · Share Code ${state.profile.code}`;
+                if (user.photoURL) {
+                    avatarEl.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar" />`;
+                } else {
+                    avatarEl.textContent = (user.displayName || 'M').charAt(0).toUpperCase();
+                }
+                signInBtn.classList.add('hidden');
+                signOutBtn.classList.remove('hidden');
+            } else {
+                nameEl.textContent = state.profile.name === 'You' ? 'Local Sanctuary' : state.profile.name;
+                subEl.textContent = 'Sign in with Google to sync your daily score with your Circle';
+                avatarEl.textContent = (state.profile.name || 'M').charAt(0).toUpperCase();
+                signInBtn.classList.remove('hidden');
+                signOutBtn.classList.add('hidden');
+            }
+        }
+
+        window.handleGoogleSignIn = async function() {
+            if (!auth) {
+                showToast('Firebase initializing, please try again');
+                return;
+            }
+            if (window.location.protocol === 'file:') {
+                showToast('Open via localhost or your live URL to use Google Sign-In');
+                return;
+            }
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                if (result.user) {
+                    state.profile.name = result.user.displayName || 'Practitioner';
+                    state.profile.photoURL = result.user.photoURL || '';
+                    saveState();
+                    updateAuthBarUI(result.user);
+                    await syncMyScoreToCloud(true);
+                    renderCircle();
+                }
+            } catch (e) {
+                console.error('Google Sign-In error:', e);
+                showToast(`Sign-In Error: ${e.code || e.message}`);
+            }
+        };
+
+        window.handleSignOut = async function() {
+            if (auth) {
+                try { await signOut(auth); } catch (e) {}
+            }
+            state.profile.name = 'You';
+            state.profile.photoURL = '';
+            saveState();
+            updateAuthBarUI(null);
+            renderCircle();
+            showToast('Signed out');
+        };
+
+        window.syncMyScoreToCloud = async function(manual = false) {
+            if (!db || !currentUser) {
+                if (manual) showToast('Sign in with Google first to sync your score');
+                return;
+            }
+            try {
+                const todayKey = getTodayISO();
+                const weekId = getMondayISO(new Date());
+                const dailyScore = computeDailyAggregateScore(todayKey);
+                const weeklyScore = computeWeeklyAggregateScore(new Date());
+                const bestStreak = state.habits.reduce((max, h) => Math.max(max, computeActiveStreak(h)), 0);
+
+                const memberRef = doc(db, 'circle_scores', state.profile.code);
+                await setDoc(memberRef, {
+                    uid: currentUser.uid,
+                    code: state.profile.code,
+                    name: state.profile.name === 'You' ? (currentUser.displayName || 'Practitioner') : state.profile.name,
+                    photoURL: state.profile.photoURL || currentUser.photoURL || '',
+                    dailyScore,
+                    weeklyScore,
+                    streak: bestStreak,
+                    habitCount: state.habits.length,
+                    todayKey,
+                    weekId,
+                    updatedAt: Date.now()
+                }, { merge: true });
+
+                if (manual) showToast('Circle score synced to cloud');
+            } catch (e) {
+                console.warn('Cloud sync warning:', e);
+                if (manual) showToast('Sync blocked: Check Firestore Rules in Firebase Console');
+            }
+        };
+
+        function subscribeToCloudCircle() {
+            if (!db) return;
+            if (unsubscribeLeaderboard) unsubscribeLeaderboard();
+            try {
+                const colRef = collection(db, 'circle_scores');
+                unsubscribeLeaderboard = onSnapshot(colRef, (snapshot) => {
+                    const currentWeek = getMondayISO(new Date());
+                    const todayKey = getTodayISO();
+                    const cloudMembers = [];
+                    snapshot.forEach(docSnap => {
+                        const d = docSnap.data();
+                        if (d && d.code) {
+                            cloudMembers.push({
+                                code: d.code,
+                                name: d.name || 'Friend',
+                                photoURL: d.photoURL || '',
+                                dailyScore: d.todayKey === todayKey ? (d.dailyScore || 0) : 0,
+                                weeklyScore: d.weekId === currentWeek ? (d.weeklyScore || 0) : 0,
+                                streak: d.streak || 0
+                            });
+                        }
+                    });
+                    state.cloudCircle = cloudMembers;
+                    renderCircle();
+                }, (err) => {
+                    console.warn('Firestore listener info:', err);
+                });
+            } catch (e) {}
+        }
+
+        /***********************************************************************
+         * 5. RESONANT WEBAUDIO SINGING BOWL CHIME
+         ***********************************************************************/
+        let audioCtx = null;
+        function playZenChime() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(528, now);
+                osc.frequency.exponentialRampToValueAtTime(531, now + 0.9);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.11, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 1.15);
+            } catch (e) {}
+        }
+
+        /***********************************************************************
+         * 6. UI RENDERING: TODAY, CIRCLE, METRICS
+         ***********************************************************************/
+        window.switchTab = function(tab) {
+            state.activeTab = tab;
+            ['today', 'circle', 'metrics'].forEach(t => {
+                const section = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if (t === tab) {
+                    section.classList.remove('hidden');
+                    btn.classList.add('tab-btn-active');
+                    btn.classList.remove('text-muted');
+                } else {
+                    section.classList.add('hidden');
+                    btn.classList.remove('tab-btn-active');
+                    btn.classList.add('text-muted');
+                }
+            });
+            renderAll();
+        };
+
+        window.setReviewMode = function(mode) {
+            state.reviewMode = mode;
+            saveState();
+            renderToday();
+        };
+
+        function getDueHabitsToday() {
+            const todayKey = getTodayISO();
+            return state.habits.filter(h => !h.history?.[todayKey] && !state.skippedToday.includes(h.id));
+        }
+
+        window.completeCurrentFocusHabit = function(habitId) {
+            const todayKey = getTodayISO();
+            const habit = state.habits.find(h => h.id === habitId);
+            if (!habit) return;
+            if (!habit.history) habit.history = {};
+            habit.history[todayKey] = true;
+            playZenChime();
+            saveState();
+            syncMyScoreToCloud();
+            renderAll();
+        };
+
+        window.skipCurrentFocusHabit = function(habitId) {
+            if (!state.skippedToday.includes(habitId)) {
+                state.skippedToday.push(habitId);
+            } else {
+                state.skippedToday = [];
+            }
+            renderToday();
+        };
+
+        window.toggleHabitOnDate = function(habitId, isoDate) {
+            const habit = state.habits.find(h => h.id === habitId);
+            if (!habit) return;
+            if (!habit.history) habit.history = {};
+            if (habit.history[isoDate]) {
+                delete habit.history[isoDate];
+            } else {
+                habit.history[isoDate] = true;
+                playZenChime();
+            }
+            saveState();
+            syncMyScoreToCloud();
+            renderAll();
+        };
+
+        window.deleteHabit = function(habitId) {
+            if (state.habits.length <= 1) {
+                showToast('Keep at least one daily ritual');
+                return;
+            }
+            state.habits = state.habits.filter(h => h.id !== habitId);
+            saveState();
+            syncMyScoreToCloud();
+            renderAll();
+            showToast('Ritual removed');
+        };
+
+        function renderToday() {
+            const todayKey = getTodayISO();
+            const dailyScore = computeDailyAggregateScore(todayKey);
+            const weeklyScore = computeWeeklyAggregateScore(new Date());
+            const remaining = state.habits.filter(h => !h.history?.[todayKey]).length;
+
+            document.getElementById('todayAggregateScore').textContent = dailyScore;
+            document.getElementById('todayWeeklyScore').textContent = `${weeklyScore} pts`;
+            document.getElementById('dueCounterBadge').textContent = remaining === 0 ? 'All aligned' : `${remaining} remaining`;
+
+            const focusBtn = document.getElementById('modeBtn-focus');
+            const listBtn = document.getElementById('modeBtn-list');
+            const focusBox = document.getElementById('focusDeckContainer');
+            const listBox = document.getElementById('habitListContainer');
+
+            if (state.reviewMode === 'focus') {
+                focusBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
+                listBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
+                focusBox.classList.remove('hidden');
+                listBox.classList.add('hidden');
+
+                let dueQueue = getDueHabitsToday();
+                if (dueQueue.length === 0 && remaining > 0) {
+                    state.skippedToday = [];
+                    dueQueue = getDueHabitsToday();
+                }
+
+                if (remaining === 0) {
+                    focusBox.innerHTML = `
+                        <div class="py-8 space-y-4">
+                            <div class="w-16 h-16 rounded-full bg-sage/15 border border-sage/40 text-sage mx-auto flex items-center justify-center text-2xl">✓</div>
+                            <h3 class="font-serif text-3xl text-alabaster">Today's Sanctuary is Complete</h3>
+                            <p class="text-xs text-muted max-w-md mx-auto">You have achieved a 100/100 daily alignment score. Your standing in the Circle is locked in.</p>
+                            <div class="pt-2">
+                                <button onclick="setReviewMode('list')" class="px-4 py-2 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 transition">
+                                    Review Completed List
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const current = dueQueue[0];
+                    const streak = computeActiveStreak(current);
+                    focusBox.innerHTML = `
+                        <div class="flex items-center justify-between text-xs font-mono text-muted">
+                            <span class="uppercase tracking-widest text-gold">${current.category || 'Ritual'}</span>
+                            <span>Streak · ${streak}d</span>
+                        </div>
+                        <div class="py-6 space-y-3">
+                            <div class="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/30 text-gold mx-auto flex items-center justify-center text-2xl">
+                                ${current.icon || '✦'}
+                            </div>
+                            <h3 class="font-serif text-3xl sm:text-4xl text-alabaster max-w-lg mx-auto leading-tight">${current.title}</h3>
+                            <p class="text-xs text-muted">Mark complete once fulfilled for today</p>
+                        </div>
+                        <div class="flex items-center justify-center gap-3 pt-2">
+                            <button onclick="skipCurrentFocusHabit('${current.id}')" class="px-5 py-3 rounded-2xl bg-stone border border-white/10 text-xs font-mono text-muted hover:text-alabaster transition">
+                                Later (1)
+                            </button>
+                            <button onclick="completeCurrentFocusHabit('${current.id}')" class="px-8 py-3 rounded-2xl bg-gold text-obsidian font-semibold text-xs tracking-wide hover:opacity-95 transition gold-glow">
+                                Complete Ritual (Space)
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                listBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
+                focusBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
+                focusBox.classList.add('hidden');
+                listBox.classList.remove('hidden');
+
+                listBox.innerHTML = state.habits.map(h => {
+                    const done = !!(h.history && h.history[todayKey]);
+                    const streak = computeActiveStreak(h);
+                    return `
+                        <div class="zen-card rounded-2xl p-4 flex items-center justify-between gap-4 transition ${done ? 'border-sage/30 bg-sage/[0.03]' : ''}">
+                            <button onclick="toggleHabitOnDate('${h.id}', '${todayKey}')" class="flex items-center gap-3.5 text-left flex-1">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base border transition ${done ? 'bg-sage text-obsidian border-sage font-bold' : 'bg-stone border-white/10 text-gold'}">
+                                    ${done ? '✓' : (h.icon || '✦')}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium ${done ? 'line-through text-muted' : 'text-alabaster'}">${h.title}</div>
+                                    <div class="font-mono text-[10px] text-muted uppercase tracking-wider mt-0.5">${h.category || 'Ritual'} · ${streak}d streak</div>
+                                </div>
+                            </button>
+                            <button onclick="deleteHabit('${h.id}')" title="Remove Ritual" class="text-muted hover:text-rose-400 text-xs px-2 py-1">✕</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderCircle() {
+            const listEl = document.getElementById('circleLeaderboardList');
+            const todayKey = getTodayISO();
+            const myEntry = {
+                code: state.profile.code,
+                name: state.profile.name === 'You' ? 'You' : state.profile.name,
+                photoURL: state.profile.photoURL || '',
+                dailyScore: computeDailyAggregateScore(todayKey),
+                weeklyScore: computeWeeklyAggregateScore(new Date()),
+                streak: state.habits.reduce((max, h) => Math.max(max, computeActiveStreak(h)), 0),
+                isMe: true
+            };
+
+            const mergedMap = new Map();
+            mergedMap.set(myEntry.code, myEntry);
+            (state.cloudCircle || []).forEach(m => {
+                if (m.code === myEntry.code) {
+                    mergedMap.set(m.code, { ...m, ...myEntry, isMe: true });
+                } else {
+                    mergedMap.set(m.code, m);
+                }
+            });
+
+            const sorted = Array.from(mergedMap.values()).sort((a, b) => (b.weeklyScore - a.weeklyScore) || (b.dailyScore - a.dailyScore));
+
+            listEl.innerHTML = sorted.map((m, idx) => {
+                const isPinned = state.pinnedFriends.includes(m.code);
+                return `
+                    <div class="p-4 rounded-2xl border transition flex items-center justify-between ${m.isMe ? 'bg-gold/[0.07] border-gold/40' : isPinned ? 'bg-white/[0.04] border-white/20' : 'bg-stone/70 border-white/[0.06]'}">
+                        <div class="flex items-center gap-3.5">
+                            <span class="font-serif text-xl w-6 text-center ${idx === 0 ? 'text-gold' : 'text-muted'}">${idx + 1}</span>
+                            <div class="w-10 h-10 rounded-full bg-obsidian border border-white/10 flex items-center justify-center font-serif text-base text-gold overflow-hidden">
+                                ${m.photoURL ? `<img src="${m.photoURL}" class="w-full h-full object-cover" />` : (m.name || 'M').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium text-alabaster">${m.name}</span>
+                                    <span class="font-mono text-[10px] text-muted">#${m.code}</span>
+                                </div>
+                                <div class="font-mono text-[11px] text-muted mt-0.5">Best Streak: ${m.streak || 0}d</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-serif text-2xl text-gold leading-none">${m.weeklyScore || 0} <span class="font-mono text-[10px] text-muted">wk</span></div>
+                            <div class="font-mono text-[11px] text-sage mt-1">Today: ${m.dailyScore || 0}/100</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMetrics() {
+            const bestStreak = state.habits.reduce((max, h) => Math.max(max, computeActiveStreak(h)), 0);
+            let totalCheckins = 0;
+            state.habits.forEach(h => {
+                totalCheckins += Object.keys(h.history || {}).filter(k => h.history[k]).length;
+            });
+
+            // 7-day dates ending today
+            const last7 = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                last7.push({
+                    iso: formatLocalISO(d),
+                    label: d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2),
+                    dayNum: d.getDate()
+                });
+            }
+
+            const possible7 = Math.max(1, state.habits.length * 7);
+            let done7 = 0;
+            state.habits.forEach(h => {
+                last7.forEach(day => {
+                    if (h.history?.[day.iso]) done7++;
+                });
+            });
+
+            document.getElementById('metricBestStreak').textContent = `${bestStreak}d`;
+            document.getElementById('metricWeeklyRate').textContent = `${Math.round((done7 / possible7) * 100)}%`;
+            document.getElementById('metricTotalCheckins').textContent = totalCheckins;
+
+            // Render 7-Day Matrix
+            const headerRow = document.getElementById('matrixHeaderRow');
+            headerRow.innerHTML = `<th class="py-2 pr-4">Ritual</th>` + last7.map(d => `
+                <th class="py-2 px-2 text-center">${d.label}<br/><span class="text-alabaster">${d.dayNum}</span></th>
+            `).join('');
+
+            const bodyRows = document.getElementById('matrixBodyRows');
+            bodyRows.innerHTML = state.habits.map(h => `
+                <tr>
+                    <td class="py-3 pr-4 font-medium text-alabaster whitespace-nowrap">${h.icon || '✦'} ${h.title}</td>
+                    ${last7.map(d => {
+                        const checked = !!(h.history && h.history[d.iso]);
+                        return `
+                            <td class="py-3 px-2 text-center">
+                                <button onclick="toggleHabitOnDate('${h.id}', '${d.iso}')" class="w-7 h-7 rounded-lg border transition mx-auto flex items-center justify-center text-xs ${checked ? 'bg-gold text-obsidian border-gold font-bold' : 'bg-obsidian border-white/10 text-transparent hover:border-gold/40'}">
+                                    ✓
+                                </button>
+                            </td>
+                        `;
+                    }).join('')}
+                </tr>
+            `).join('');
+
+            // Render 28-Day Heatmap
+            const heatmap = document.getElementById('heatmapGrid');
+            const cells = [];
+            for (let i = 27; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const iso = formatLocalISO(d);
+                const score = computeDailyAggregateScore(iso);
+                let bg = 'bg-obsidian border-white/[0.06] text-muted';
+                if (score >= 90) bg = 'bg-gold text-obsidian border-gold font-semibold';
+                else if (score >= 50) bg = 'bg-gold/40 text-alabaster border-gold/50';
+                else if (score > 0) bg = 'bg-gold/15 text-alabaster border-gold/30';
+
+                cells.push(`
+                    <div class="h-10 rounded-xl border ${bg} flex flex-col items-center justify-center font-mono text-[10px]" title="${iso}: ${score}/100">
+                        <span>${d.getDate()}</span>
+                    </div>
+                `);
+            }
+            heatmap.innerHTML = cells.join('');
+        }
+
+        function renderAll() {
+            renderToday();
+            renderCircle();
+            renderMetrics();
+        }
+
+        /***********************************************************************
+         * 7. MODALS, FRIEND CODES, KEYBOARD SHORTCUTS & COUNTDOWN TIMERS
+         ***********************************************************************/
+        window.openHabitModal = function() {
+            const m = document.getElementById('habitModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            document.getElementById('newHabitTitle').focus();
+        };
+
+        window.closeHabitModal = function() {
+            const m = document.getElementById('habitModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        };
+
+        window.saveNewHabit = function() {
+            const titleEl = document.getElementById('newHabitTitle');
+            const iconEl = document.getElementById('newHabitIcon');
+            const catEl = document.getElementById('newHabitCategory');
+            const title = titleEl.value.trim();
+            if (!title) {
+                showToast('Enter a ritual name');
+                return;
+            }
+            state.habits.push({
+                id: 'h_' + Date.now(),
+                title,
+                icon: iconEl.value.trim() || '✦',
+                category: catEl.value,
+                history: {}
+            });
+            titleEl.value = '';
+            saveState();
+            closeHabitModal();
+            syncMyScoreToCloud();
+            renderAll();
+            showToast('Ritual added');
+        };
+
+        window.filterOrHighlightFriend = function() {
+            const input = document.getElementById('friendCodeInput');
+            const code = input.value.trim().toUpperCase();
+            if (!code) return;
+            if (!state.pinnedFriends.includes(code)) {
+                state.pinnedFriends.push(code);
+                saveState();
+            }
+            input.value = '';
+            renderCircle();
+            showToast(`Friend code #${code} pinned to Circle`);
+        };
+
+        window.copyInviteLink = function() {
+            const url = `${window.location.origin}${window.location.pathname}?friend=${state.profile.code}`;
+            navigator.clipboard.writeText(url);
+            showToast(`Invite link with code #${state.profile.code} copied`);
+        };
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            const text = document.getElementById('toastMessage');
+            text.textContent = msg;
+            box.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                box.classList.add('opacity-0', 'translate-y-2');
+            }, 2600);
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+            const midnight = new Date(now);
+            midnight.setHours(24, 0, 0, 0);
+            const diffMs = midnight - now;
+            const hrs = String(Math.floor(diffMs / 3600000)).padStart(2, '0');
+            const mins = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
+            const secs = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, '0');
+            const mEl = document.getElementById('midnightCountdown');
+            if (mEl) mEl.textContent = `${hrs}:${mins}:${secs}`;
+
+            // Next Monday 00:00
+            const nextMon = new Date(now);
+            const day = nextMon.getDay();
+            const daysUntilMon = day === 0 ? 1 : 8 - day;
+            nextMon.setDate(now.getDate() + daysUntilMon);
+            nextMon.setHours(0, 0, 0, 0);
+            const wDiff = nextMon - now;
+            const dLeft = Math.floor(wDiff / 86400000);
+            const hLeft = Math.floor((wDiff % 86400000) / 3600000);
+            const wEl = document.getElementById('weeklyResetCountdown');
+            if (wEl) wEl.textContent = `${dLeft}d ${hLeft}h`;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+            if (state.activeTab === 'today' && state.reviewMode === 'focus') {
+                const due = getDueHabitsToday();
+                if (!due.length) return;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    completeCurrentFocusHabit(due[0].id);
+                } else if (e.key === '1') {
+                    e.preventDefault();
+                    skipCurrentFocusHabit(due[0].id);
+                }
+            }
+        });
+
+        // Boot
+        generateZenAppIcon();
+        loadState();
+        document.getElementById('headerDateLabel').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric'
+        });
+
+        // Check URL for friend invite parameter
+        const params = new URLSearchParams(window.location.search);
+        const invitedFriend = params.get('friend');
+        if (invitedFriend && !state.pinnedFriends.includes(invitedFriend.toUpperCase())) {
+            state.pinnedFriends.push(invitedFriend.toUpperCase());
+            saveState();
+        }
+
+        renderAll();
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+        initFirebase();
+    </script>
+</body>
+</html>
