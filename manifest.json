@@ -1,8 +1,13 @@
 {
-  "name": "Momentum · Daily Rituals & Circle",
+  "id": "/",
+  "name": "Momentum · Quiet Habits, Shared Standards",
   "short_name": "Momentum",
-  "start_url": "/",
+  "description": "Minimalist habit consistency and shared peer accountability.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#070708",
   "theme_color": "#070708",
   "icons": [
@@ -10,7 +15,13 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
