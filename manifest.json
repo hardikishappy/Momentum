@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Momentum · Quiet Habits, Shared Standards",
   "short_name": "Momentum",
-  "description": "Minimalist habit consistency and shared peer accountability.",
+  "description": "Minimalist habit consistency and shared accountability.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
