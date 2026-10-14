@@ -1,0 +1,16 @@
+{
+  "name": "Momentum · Daily Rituals & Circle",
+  "short_name": "Momentum",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070708",
+  "theme_color": "#070708",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
