@@ -4,15 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#070708" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Momentum" />
     <title>Momentum · Daily Rituals & Circle</title>
 
-    <!-- Dynamic App Icon & Manifest Injection -->
-    <link id="dynamicFavicon" rel="icon" type="image/png" />
-    <link id="dynamicAppleIcon" rel="apple-touch-icon" />
-    <link id="dynamicManifest" rel="manifest" />
+    <!-- Static & Dynamic App Icons + Manifest -->
+    <link id="dynamicFavicon" rel="icon" type="image/png" href="/icon-512.png" />
+    <link id="dynamicAppleIcon" rel="apple-touch-icon" href="/icon-512.png" />
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- Fonts: Instrument Serif, Plus Jakarta Sans, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,42 +51,53 @@
     <style>
         :root {
             color-scheme: dark;
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
         }
         * {
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
+            user-select: none;
+        }
+        input, select, textarea {
+            user-select: text;
         }
         body {
             background-color: #070708;
             background-image:
-                radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.08), transparent 55%),
+                radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.09), transparent 55%),
                 radial-gradient(circle at 85% 90%, rgba(52, 211, 153, 0.04), transparent 45%);
             color: #F4F3EF;
             font-family: 'Plus Jakarta Sans', sans-serif;
             min-height: 100dvh;
             overflow-x: hidden;
+            padding-top: var(--sat);
+            padding-bottom: calc(6rem + var(--sab));
         }
         .zen-card {
-            background: linear-gradient(180deg, rgba(22, 22, 27, 0.88) 0%, rgba(14, 14, 17, 0.94) 100%);
+            background: linear-gradient(180deg, rgba(22, 22, 27, 0.9) 0%, rgba(12, 12, 15, 0.96) 100%);
             border: 1px solid rgba(244, 243, 239, 0.07);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(18px);
-        }
-        .zen-pill {
-            background: rgba(20, 20, 25, 0.85);
-            border: 1px solid rgba(244, 243, 239, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
         }
         .gold-glow {
-            box-shadow: 0 0 35px rgba(212, 175, 55, 0.15);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.22);
         }
         .tab-btn-active {
-            background: rgba(212, 175, 55, 0.14);
+            background: rgba(212, 175, 55, 0.15);
             color: #F4F3EF;
             border-color: rgba(212, 175, 55, 0.45);
         }
+        .mobile-nav-active {
+            color: #D4AF37;
+        }
+        .mobile-nav-active .nav-indicator {
+            opacity: 1;
+            transform: scaleX(1);
+        }
         ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
         }
         ::-webkit-scrollbar-track {
             background: #070708;
@@ -96,100 +108,102 @@
         }
     </style>
 </head>
-<body class="antialiased selection:bg-gold/30 selection:text-alabaster pb-24">
+<body class="antialiased selection:bg-gold/30 selection:text-alabaster">
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-30 backdrop-blur-xl bg-obsidian/80 border-b border-white/[0.06]">
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-obsidian/85 border-b border-white/[0.06]">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <!-- Brand Identity -->
             <div class="flex items-center gap-3">
-                <button id="installAppBtn" onclick="triggerNativeInstall()" title="Install App to Device" class="w-9 h-9 rounded-xl bg-stone border border-gold/40 flex items-center justify-center shadow-inner group transition hover:border-gold">
-                    <span class="font-serif text-xl text-gold tracking-tight group-hover:scale-105 transition">M</span>
+                <button id="installAppBtn" onclick="triggerNativeInstall()" title="Install Standalone App" class="w-9 h-9 rounded-xl bg-stone border border-gold/40 flex items-center justify-center shadow-inner group transition active:scale-95 hover:border-gold">
+                    <span class="font-serif text-xl text-gold tracking-tight">M</span>
                 </button>
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-serif text-2xl tracking-wide text-alabaster leading-none">Momentum</h1>
                         <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400/80" title="Connecting to Firebase..."></span>
                     </div>
-                    <p id="headerDateLabel" class="font-mono text-[11px] uppercase tracking-widest text-muted mt-0.5">SANCTUARY</p>
+                    <p id="headerDateLabel" class="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">SANCTUARY</p>
                 </div>
             </div>
 
-            <!-- 3-Tab Switcher (Today · Circle · Metrics) -->
-            <nav class="flex items-center gap-1 p-1 rounded-2xl bg-stone border border-white/[0.06]">
-                <button onclick="switchTab('today')" id="tabBtn-today" class="tab-btn-active px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide border border-transparent transition">
+            <!-- Desktop 3-Tab Switcher (Hidden on Mobile, shown on sm+) -->
+            <nav class="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-stone border border-white/[0.06]">
+                <button onclick="switchTab('today')" id="tabBtn-today" class="tab-btn-active px-4 py-1.5 rounded-xl text-xs font-medium tracking-wide border border-transparent transition">
                     Today
                 </button>
-                <button onclick="switchTab('circle')" id="tabBtn-circle" class="px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition flex items-center gap-1.5">
+                <button onclick="switchTab('circle')" id="tabBtn-circle" class="px-4 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition flex items-center gap-1.5">
                     <span>Circle</span>
                     <span class="w-1.5 h-1.5 rounded-full bg-gold"></span>
                 </button>
-                <button onclick="switchTab('metrics')" id="tabBtn-metrics" class="px-3.5 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition">
+                <button onclick="switchTab('metrics')" id="tabBtn-metrics" class="px-4 py-1.5 rounded-xl text-xs font-medium tracking-wide text-muted hover:text-alabaster border border-transparent transition">
                     Metrics
                 </button>
             </nav>
 
-            <!-- Add Ritual Button -->
-            <button onclick="openHabitModal()" class="px-3.5 py-2 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold text-xs font-medium tracking-wide transition flex items-center gap-1.5">
-                <span class="text-base leading-none">+</span>
-                <span class="hidden sm:inline">Ritual</span>
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button onclick="openHabitModal()" class="px-3.5 py-2 rounded-xl bg-gold/15 hover:bg-gold/25 active:scale-95 border border-gold/40 text-gold text-xs font-medium tracking-wide transition flex items-center gap-1.5">
+                    <span class="text-base leading-none">+</span>
+                    <span>Ritual</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-5 sm:pt-7 space-y-5 sm:space-y-6">
 
         <!-- ===============================================================
              TAB 1: TODAY (ZEN FOCUS DECK & MINIMAL CHECKLIST)
              =============================================================== -->
-        <section id="tab-today" class="space-y-6">
-            <!-- Daily Score Hero Banner -->
-            <div class="zen-card rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <section id="tab-today" class="space-y-5">
+            <!-- Daily Score Hero Banner (Mobile Ergonomic Grid) -->
+            <div class="zen-card rounded-3xl p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                 <div class="space-y-1.5">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-[11px] uppercase tracking-[0.2em] text-gold">Daily Alignment</span>
-                        <span id="dueCounterBadge" class="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white/[0.05] text-muted">0 remaining</span>
+                        <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-gold">Daily Alignment</span>
+                        <span id="dueCounterBadge" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-muted">0 remaining</span>
                     </div>
-                    <h2 id="zenGreeting" class="font-serif text-3xl sm:text-4xl text-alabaster tracking-normal">Quiet consistency compounds.</h2>
-                    <p class="text-xs text-muted">Complete your daily rituals before midnight to lock in your Circle score.</p>
+                    <h2 id="zenGreeting" class="font-serif text-3xl sm:text-4xl text-alabaster tracking-normal leading-tight">Quiet consistency compounds.</h2>
+                    <p class="text-xs text-muted leading-relaxed">Complete your daily rituals before midnight to lock in your Circle standing.</p>
                 </div>
 
-                <!-- Daily Aggregate Score Ring -->
-                <div class="flex items-center gap-4 self-start sm:self-center bg-obsidian/60 px-5 py-3.5 rounded-2xl border border-white/[0.06]">
+                <!-- Daily Aggregate Score Pill -->
+                <div class="grid grid-cols-2 sm:flex items-center gap-4 bg-obsidian/75 px-4 py-3.5 rounded-2xl border border-white/[0.07] shrink-0">
                     <div>
-                        <div class="font-mono text-[10px] uppercase tracking-widest text-muted">Today's Score</div>
+                        <div class="font-mono text-[10px] uppercase tracking-widest text-muted">Today</div>
                         <div class="flex items-baseline gap-1 mt-0.5">
-                            <span id="todayAggregateScore" class="font-serif text-4xl text-gold leading-none">0</span>
-                            <span class="font-mono text-xs text-muted">/ 100</span>
+                            <span id="todayAggregateScore" class="font-serif text-3xl sm:text-4xl text-gold leading-none">0</span>
+                            <span class="font-mono text-[11px] text-muted">/ 100</span>
                         </div>
                     </div>
-                    <div class="h-10 w-[1px] bg-white/[0.08]"></div>
-                    <div>
+                    <div class="hidden sm:block h-9 w-[1px] bg-white/[0.08]"></div>
+                    <div class="border-l border-white/[0.08] pl-4 sm:border-0 sm:pl-0">
                         <div class="font-mono text-[10px] uppercase tracking-widest text-muted">Weekly</div>
-                        <div id="todayWeeklyScore" class="font-mono text-lg text-alabaster mt-0.5">0 pts</div>
+                        <div id="todayWeeklyScore" class="font-serif text-2xl sm:text-3xl text-alabaster leading-none mt-1">0 <span class="font-mono text-[10px] text-muted">pts</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Mode Toggle Bar (Focus Deck vs List View) -->
+            <!-- Mode Toggle Bar -->
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1 p-1 rounded-xl bg-stone border border-white/[0.06]">
-                    <button id="modeBtn-focus" onclick="setReviewMode('focus')" class="px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition">
+                <div class="flex items-center gap-1 p-1 rounded-xl bg-stone border border-white/[0.06] w-full sm:w-auto">
+                    <button id="modeBtn-focus" onclick="setReviewMode('focus')" class="flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition">
                         Focus Card
                     </button>
-                    <button id="modeBtn-list" onclick="setReviewMode('list')" class="px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition">
+                    <button id="modeBtn-list" onclick="setReviewMode('list')" class="flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition">
                         All Rituals
                     </button>
                 </div>
 
-                <div class="font-mono text-[11px] text-muted">
-                    <span class="hidden sm:inline">Shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">Space</kbd> Complete · <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">1</kbd> Skip</span>
+                <div class="hidden sm:block font-mono text-[11px] text-muted">
+                    Shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">Space</kbd> Complete · <kbd class="px-1.5 py-0.5 rounded bg-stone border border-white/10 text-alabaster">1</kbd> Later
                 </div>
             </div>
 
             <!-- Focus Card Container -->
-            <div id="focusDeckContainer" class="zen-card rounded-3xl p-7 sm:p-10 text-center space-y-7 relative overflow-hidden">
+            <div id="focusDeckContainer" class="zen-card rounded-3xl p-6 sm:p-10 text-center space-y-6 relative overflow-hidden">
                 <!-- Populated dynamically by JS -->
             </div>
 
@@ -200,42 +214,42 @@
         </section>
 
         <!-- ===============================================================
-             TAB 2: CIRCLE (GOOGLE SIGN-IN + FRIEND LEADERBOARD)
+             TAB 2: CIRCLE (UNIFIED GOOGLE ACCOUNT + FRIEND LEADERBOARD)
              =============================================================== -->
-        <section id="tab-circle" class="hidden space-y-6">
+        <section id="tab-circle" class="hidden space-y-5">
             <!-- Google Account & Cloud Sync Bar -->
             <div class="zen-card rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5">
-                    <div id="authAvatar" class="w-12 h-12 rounded-full bg-gold/15 border border-gold/40 flex items-center justify-center font-serif text-xl text-gold overflow-hidden shrink-0">
+                    <div id="authAvatar" class="w-12 h-12 rounded-2xl bg-gold/15 border border-gold/40 flex items-center justify-center font-serif text-xl text-gold overflow-hidden shrink-0">
                         M
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 id="authUserName" class="font-medium text-alabaster text-base">Local Sanctuary</h3>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 id="authUserName" class="font-medium text-alabaster text-base truncate">Local Sanctuary</h3>
                             <span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30" id="myFriendCodeBadge">CODE</span>
                         </div>
-                        <p id="authUserSub" class="text-xs text-muted mt-0.5">Sign in with Google to sync your daily score with your Circle</p>
+                        <p id="authUserSub" class="text-xs text-muted mt-0.5 leading-snug">Sign in with Google to unify your account across laptop & mobile</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2.5">
-                    <button id="googleSignInBtn" onclick="handleGoogleSignIn()" class="px-4 py-2.5 rounded-xl bg-alabaster text-obsidian font-medium text-xs hover:bg-white transition flex items-center gap-2 shadow-lg">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="googleSignInBtn" onclick="handleGoogleSignIn()" class="w-full sm:w-auto justify-center px-4 py-3 sm:py-2.5 rounded-xl bg-alabaster text-obsidian font-semibold text-xs hover:bg-white active:scale-[0.99] transition flex items-center gap-2 shadow-lg">
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"/>
                             <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"/>
                             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"/>
                         </svg>
-                        <span>Sign in with Google</span>
+                        <span>Continue with Google</span>
                     </button>
-                    <button id="signOutBtn" onclick="handleSignOut()" class="hidden px-3.5 py-2 rounded-xl bg-stone border border-white/10 text-xs text-muted hover:text-alabaster transition">
+                    <button id="signOutBtn" onclick="handleSignOut()" class="hidden w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone border border-white/10 text-xs text-muted hover:text-alabaster transition">
                         Sign Out
                     </button>
                 </div>
             </div>
 
             <!-- Reset Timers & Add Friend Code Bar -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div class="zen-card rounded-2xl p-4 flex items-center justify-between">
                     <div>
                         <span class="font-mono text-[10px] uppercase tracking-widest text-muted block">Midnight Score Lock</span>
@@ -248,26 +262,26 @@
                 </div>
 
                 <!-- Add Friend by Code or Share Invite -->
-                <div class="zen-card rounded-2xl p-4 flex items-center gap-2">
-                    <input id="friendCodeInput" type="text" maxlength="8" placeholder="Enter Friend Code..." class="w-full bg-obsidian/70 border border-white/[0.08] rounded-xl px-3 py-2 text-xs font-mono uppercase text-alabaster placeholder:text-muted focus:outline-none focus:border-gold" />
-                    <button onclick="filterOrHighlightFriend()" class="px-3.5 py-2 rounded-xl bg-gold/15 border border-gold/40 text-gold text-xs font-medium shrink-0 hover:bg-gold/25 transition">
-                        Add
+                <div class="zen-card rounded-2xl p-3.5 flex items-center gap-2">
+                    <input id="friendCodeInput" type="text" maxlength="8" placeholder="Friend Code..." class="w-full bg-obsidian/80 border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs font-mono uppercase text-alabaster placeholder:text-muted focus:outline-none focus:border-gold" />
+                    <button onclick="filterOrHighlightFriend()" class="px-3.5 py-2.5 rounded-xl bg-gold/15 border border-gold/40 text-gold text-xs font-medium shrink-0 active:scale-95 transition">
+                        Pin
                     </button>
-                    <button onclick="copyInviteLink()" title="Copy Circle Invite Link" class="px-3 py-2 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 transition shrink-0">
+                    <button onclick="copyInviteLink()" title="Share Circle Invite" class="px-3.5 py-2.5 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 active:scale-95 transition shrink-0">
                         Share
                     </button>
                 </div>
             </div>
 
             <!-- Circle Leaderboard Standing -->
-            <div class="zen-card rounded-3xl p-6 space-y-4">
+            <div class="zen-card rounded-3xl p-5 sm:p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
                     <div>
                         <h3 class="font-serif text-2xl text-alabaster">Circle Standings</h3>
-                        <p class="text-xs text-muted">Ranked by weekly cumulative consistency (0–100 pts daily max)</p>
+                        <p class="text-[11px] text-muted">Unified per Google account · 100 pts daily max</p>
                     </div>
-                    <button onclick="syncMyScoreToCloud(true)" class="font-mono text-[11px] text-gold hover:underline">
-                        Sync Now ↻
+                    <button onclick="syncMyScoreToCloud(true)" class="font-mono text-[11px] px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold active:scale-95 transition">
+                        Sync ↻
                     </button>
                 </div>
 
@@ -278,53 +292,58 @@
         </section>
 
         <!-- ===============================================================
-             TAB 3: METRICS (7-DAY MATRIX & 28-DAY CONSISTENCY HEATMAP)
+             TAB 3: METRICS (MOBILE-ERGONOMIC 7-DAY STRIP & 28-DAY HEATMAP)
              =============================================================== -->
-        <section id="tab-metrics" class="hidden space-y-6">
+        <section id="tab-metrics" class="hidden space-y-5">
             <!-- Summary Telemetry Strip -->
-            <div class="grid grid-cols-3 gap-3 sm:gap-4">
-                <div class="zen-card rounded-2xl p-4">
-                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">Active Streak</span>
-                    <div id="metricBestStreak" class="font-serif text-3xl text-gold mt-1">0 days</div>
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+                <div class="zen-card rounded-2xl p-3.5 sm:p-4">
+                    <span class="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-muted block">Best Streak</span>
+                    <div id="metricBestStreak" class="font-serif text-2xl sm:text-3xl text-gold mt-1">0d</div>
                 </div>
-                <div class="zen-card rounded-2xl p-4">
-                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">7-Day Rate</span>
-                    <div id="metricWeeklyRate" class="font-serif text-3xl text-alabaster mt-1">0%</div>
+                <div class="zen-card rounded-2xl p-3.5 sm:p-4">
+                    <span class="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-muted block">7-Day Rate</span>
+                    <div id="metricWeeklyRate" class="font-serif text-2xl sm:text-3xl text-alabaster mt-1">0%</div>
                 </div>
-                <div class="zen-card rounded-2xl p-4">
-                    <span class="font-mono text-[10px] uppercase tracking-widest text-muted">Total Check-ins</span>
-                    <div id="metricTotalCheckins" class="font-serif text-3xl text-sage mt-1">0</div>
+                <div class="zen-card rounded-2xl p-3.5 sm:p-4">
+                    <span class="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-muted block">Check-ins</span>
+                    <div id="metricTotalCheckins" class="font-serif text-2xl sm:text-3xl text-sage mt-1">0</div>
                 </div>
             </div>
 
-            <!-- 7-Day Ritual Matrix -->
-            <div class="zen-card rounded-3xl p-6 space-y-4 overflow-x-auto">
+            <!-- 7-Day Ritual Log (Responsive Cards on Mobile, Matrix on Desktop) -->
+            <div class="zen-card rounded-3xl p-5 sm:p-6 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-serif text-2xl text-alabaster">7-Day Ritual Matrix</h3>
-                    <span class="font-mono text-[11px] text-muted">Tap any day cell to toggle</span>
+                    <h3 class="font-serif text-2xl text-alabaster">7-Day Ritual Log</h3>
+                    <span class="font-mono text-[10px] text-muted">Tap any day to toggle</span>
                 </div>
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr id="matrixHeaderRow" class="border-b border-white/[0.06] font-mono text-[10px] uppercase text-muted">
-                            <!-- Populated by JS -->
-                        </tr>
-                    </thead>
-                    <tbody id="matrixBodyRows" class="divide-y divide-white/[0.05] text-sm">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+
+                <!-- Mobile Ergonomic 7-Day Strip Cards (Zero Horizontal Scroll) -->
+                <div id="mobileMatrixCards" class="sm:hidden space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Desktop Table Matrix -->
+                <div class="hidden sm:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr id="matrixHeaderRow" class="border-b border-white/[0.06] font-mono text-[10px] uppercase text-muted"></tr>
+                        </thead>
+                        <tbody id="matrixBodyRows" class="divide-y divide-white/[0.05] text-sm"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- 28-Day Consistency Heatmap -->
-            <div class="zen-card rounded-3xl p-6 space-y-4">
+            <div class="zen-card rounded-3xl p-5 sm:p-6 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-serif text-2xl text-alabaster">28-Day Consistency Field</h3>
-                        <p class="text-xs text-muted">Intensity reflects daily aggregate score (0 to 100)</p>
+                        <p class="text-xs text-muted">Daily score intensity (0 to 100)</p>
                     </div>
-                    <span class="font-mono text-[11px] text-gold">Last 4 Weeks</span>
+                    <span class="font-mono text-[10px] text-gold uppercase tracking-wider">4 Weeks</span>
                 </div>
-                <div id="heatmapGrid" class="grid grid-cols-7 gap-2 pt-2">
+                <div id="heatmapGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2 pt-1">
                     <!-- Populated by JS -->
                 </div>
             </div>
@@ -333,27 +352,48 @@
     </main>
 
     <!-- ===============================================================
+         MOBILE BOTTOM NAVIGATION DOCK (THUMB-ZONE ERGONOMIC BAR)
+         =============================================================== -->
+    <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-obsidian/90 backdrop-blur-2xl border-t border-white/[0.08] px-6 pb-[env(safe-area-inset-bottom,12px)] pt-2 flex items-center justify-around">
+        <button onclick="switchTab('today')" id="mobNav-today" class="mobile-nav-active flex flex-col items-center gap-1 py-1 px-4 relative transition">
+            <span class="nav-indicator absolute -top-2 w-6 h-0.5 rounded-full bg-gold opacity-0 scale-x-50 transition-all"></span>
+            <span class="text-base leading-none">✦</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest">Today</span>
+        </button>
+        <button onclick="switchTab('circle')" id="mobNav-circle" class="text-muted flex flex-col items-center gap-1 py-1 px-4 relative transition">
+            <span class="nav-indicator absolute -top-2 w-6 h-0.5 rounded-full bg-gold opacity-0 scale-x-50 transition-all"></span>
+            <span class="text-base leading-none">◎</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest">Circle</span>
+        </button>
+        <button onclick="switchTab('metrics')" id="mobNav-metrics" class="text-muted flex flex-col items-center gap-1 py-1 px-4 relative transition">
+            <span class="nav-indicator absolute -top-2 w-6 h-0.5 rounded-full bg-gold opacity-0 scale-x-50 transition-all"></span>
+            <span class="text-base leading-none">◈</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest">Metrics</span>
+        </button>
+    </nav>
+
+    <!-- ===============================================================
          MODAL: ADD NEW RITUAL
          =============================================================== -->
-    <div id="habitModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-md p-4">
-        <div class="zen-card rounded-3xl max-w-md w-full p-6 space-y-5 border border-white/10">
+    <div id="habitModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4">
+        <div class="zen-card rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 space-y-5 border-t sm:border border-white/10">
             <div class="flex items-center justify-between">
                 <h3 class="font-serif text-2xl text-alabaster">New Daily Ritual</h3>
-                <button onclick="closeHabitModal()" class="text-muted hover:text-alabaster text-sm">✕</button>
+                <button onclick="closeHabitModal()" class="w-8 h-8 rounded-full bg-stone text-muted hover:text-alabaster text-xs flex items-center justify-center">✕</button>
             </div>
             <div class="space-y-4">
                 <div>
                     <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Ritual Name</label>
-                    <input id="newHabitTitle" type="text" placeholder="e.g. Deep Work Block (90m)" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-alabaster focus:outline-none focus:border-gold" />
+                    <input id="newHabitTitle" type="text" placeholder="e.g. Deep Work Block (90m)" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-3 text-sm text-alabaster focus:outline-none focus:border-gold" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Symbol</label>
-                        <input id="newHabitIcon" type="text" maxlength="2" value="✦" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-center text-alabaster focus:outline-none focus:border-gold" />
+                        <input id="newHabitIcon" type="text" maxlength="2" value="✦" class="w-full bg-obsidian border border-white/10 rounded-xl px-3.5 py-3 text-sm text-center text-alabaster focus:outline-none focus:border-gold" />
                     </div>
                     <div>
                         <label class="block font-mono text-[10px] uppercase tracking-widest text-muted mb-1.5">Category</label>
-                        <select id="newHabitCategory" class="w-full bg-obsidian border border-white/10 rounded-xl px-3 py-2.5 text-sm text-alabaster focus:outline-none focus:border-gold">
+                        <select id="newHabitCategory" class="w-full bg-obsidian border border-white/10 rounded-xl px-3 py-3 text-sm text-alabaster focus:outline-none focus:border-gold">
                             <option value="Mind">Mind</option>
                             <option value="Body">Body</option>
                             <option value="Craft">Craft</option>
@@ -363,83 +403,36 @@
                 </div>
             </div>
             <div class="flex items-center justify-end gap-2 pt-2">
-                <button onclick="closeHabitModal()" class="px-4 py-2 rounded-xl text-xs text-muted hover:text-alabaster">Cancel</button>
-                <button onclick="saveNewHabit()" class="px-5 py-2.5 rounded-xl bg-gold text-obsidian font-semibold text-xs hover:opacity-95 transition">Create Ritual</button>
+                <button onclick="closeHabitModal()" class="px-4 py-2.5 rounded-xl text-xs text-muted hover:text-alabaster">Cancel</button>
+                <button onclick="saveNewHabit()" class="px-6 py-3 rounded-xl bg-gold text-obsidian font-semibold text-xs hover:opacity-95 transition">Create Ritual</button>
             </div>
         </div>
     </div>
 
     <!-- Subtle Toast Notification -->
-    <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-2">
+    <div id="toastBox" class="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-2 w-[90%] max-w-sm text-center">
         <div id="toastMessage" class="px-4 py-2.5 rounded-2xl bg-stone/95 border border-gold/40 text-alabaster text-xs font-mono shadow-2xl">
             Ready
         </div>
     </div>
 
     <!-- ===============================================================
-         MAIN APPLICATION & FIREBASE SCRIPT
+         MAIN APPLICATION & UNIFIED GOOGLE ACCOUNT SYNC
          =============================================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         /***********************************************************************
-         * 1. DYNAMIC ENSO APP ICON & PWA MANIFEST GENERATOR
+         * 1. PWA INSTALL & SERVICE WORKER REGISTRATION
          ***********************************************************************/
         let deferredInstallPrompt = null;
 
-        function generateZenAppIcon() {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 512;
-                canvas.height = 512;
-                const ctx = canvas.getContext('2d');
-
-                // Obsidian Rounded Background
-                ctx.fillStyle = '#070708';
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Subtle radial gold glow
-                const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 240);
-                grad.addColorStop(0, 'rgba(212, 175, 55, 0.22)');
-                grad.addColorStop(1, 'rgba(7, 7, 8, 0)');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Kintsugi Gold Enso Ring
-                ctx.strokeStyle = '#D4AF37';
-                ctx.lineWidth = 22;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.arc(256, 256, 168, 0.35, Math.PI * 1.88);
-                ctx.stroke();
-
-                // Center Serif Monogram
-                ctx.fillStyle = '#F4F3EF';
-                ctx.font = 'italic 210px Georgia, serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('M', 256, 266);
-
-                const iconDataUrl = canvas.toDataURL('image/png');
-                document.getElementById('dynamicFavicon').href = iconDataUrl;
-                document.getElementById('dynamicAppleIcon').href = iconDataUrl;
-
-                const manifest = {
-                    name: 'Momentum · Daily Rituals & Circle',
-                    short_name: 'Momentum',
-                    start_url: '.',
-                    display: 'standalone',
-                    background_color: '#070708',
-                    theme_color: '#070708',
-                    icons: [
-                        { src: iconDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-                    ]
-                };
-                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-                document.getElementById('dynamicManifest').href = URL.createObjectURL(blob);
-            } catch (e) {}
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -453,14 +446,14 @@
                 await deferredInstallPrompt.userChoice;
                 deferredInstallPrompt = null;
             } else {
-                showToast('Tip: Use browser menu -> "Install App" or "Add to Home Screen"');
+                showToast('Tap Browser Menu -> "Add to Home Screen" or "Install App"');
             }
         };
 
         /***********************************************************************
-         * 2. STATE & DATE UTILITIES
+         * 2. STATE & DETERMINISTIC ACCOUNT CODE ENGINE
          ***********************************************************************/
-        const STORAGE_KEY = 'momentum_zen_state_v4';
+        const STORAGE_KEY = 'momentum_zen_state_v5';
 
         function formatLocalISO(d) {
             const yr = d.getFullYear();
@@ -481,7 +474,25 @@
             return formatLocalISO(d);
         }
 
-        function generateFriendCode() {
+        // Generates a deterministic 6-character Friend Code from Google UID
+        // Guarantees the exact same Friend Code on Laptop, Phone, or Tablet!
+        function deriveDeterministicCodeFromUid(uid) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let hash = 2166136261;
+            for (let i = 0; i < uid.length; i++) {
+                hash ^= uid.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
+            }
+            let code = '';
+            let val = Math.abs(hash);
+            for (let i = 0; i < 6; i++) {
+                code += chars[(val + i * 7) % chars.length];
+                val = Math.floor(val / chars.length) ^ (uid.charCodeAt(i % uid.length) || 5);
+            }
+            return code;
+        }
+
+        function generateLocalFallbackCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let out = '';
             for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
@@ -500,8 +511,9 @@
             reviewMode: 'focus',
             skippedToday: [],
             profile: {
+                uid: '',
                 name: 'You',
-                code: generateFriendCode(),
+                code: generateLocalFallbackCode(),
                 photoURL: ''
             },
             habits: defaultHabits,
@@ -511,7 +523,7 @@
 
         function loadState() {
             try {
-                const raw = localStorage.getItem(STORAGE_KEY);
+                const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('momentum_zen_state_v4');
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     state = {
@@ -534,6 +546,37 @@
                     pinnedFriends: state.pinnedFriends
                 }));
             } catch (e) {}
+            const badge = document.getElementById('myFriendCodeBadge');
+            if (badge) badge.textContent = state.profile.code;
+        }
+
+        // Merges local and cloud habits by unioning completion histories so neither device loses check-ins
+        function mergeHabitLists(cloudHabits, localHabits) {
+            if (!Array.isArray(cloudHabits) || !cloudHabits.length) return localHabits;
+            const mergedMap = new Map();
+
+            cloudHabits.forEach(ch => {
+                mergedMap.set(ch.id, {
+                    ...ch,
+                    history: { ...(ch.history || {}) }
+                });
+            });
+
+            // Also merge completion history for matching habit IDs or titles from local device
+            (localHabits || []).forEach(lh => {
+                const match = mergedMap.get(lh.id) || Array.from(mergedMap.values()).find(x => x.title.toLowerCase() === lh.title.toLowerCase());
+                if (match) {
+                    match.history = { ...(match.history || {}), ...(lh.history || {}) };
+                } else {
+                    const hasAnyCheckin = Object.keys(lh.history || {}).length > 0;
+                    const isDefault = ['h1', 'h2', 'h3', 'h4'].includes(lh.id);
+                    if (!isDefault || hasAnyCheckin) {
+                        mergedMap.set(lh.id, lh);
+                    }
+                }
+            });
+
+            return Array.from(mergedMap.values());
         }
 
         /***********************************************************************
@@ -576,13 +619,13 @@
         }
 
         /***********************************************************************
-         * 4. FIREBASE AUTH & FIRESTORE CIRCLE SYNC (WIRED TO MOMENTUM-HABIT-8B6BE)
+         * 4. FIREBASE AUTH & UNIFIED ACCOUNT SYNC (SINGLE ACCOUNT ACROSS DEVICES)
          ***********************************************************************/
         let db = null;
         let auth = null;
         let currentUser = null;
         let unsubscribeLeaderboard = null;
-        const appId = 'momentum-habit-8b6be';
+        let unsubscribeUserProfile = null;
 
         const firebaseConfig = {
             apiKey: "AIzaSyBAQc" + "A1SE5Z3NszImP0KE63MmyXznSedfg",
@@ -601,23 +644,109 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                onAuthStateChanged(auth, (user) => {
+                // Handle mobile redirect sign-in result if popup fell back to redirect
+                getRedirectResult(auth).catch(() => {});
+
+                onAuthStateChanged(auth, async (user) => {
                     currentUser = user;
-                    updateAuthBarUI(user);
                     if (dot) {
                         dot.className = user
                             ? 'w-2 h-2 rounded-full bg-sage shadow-[0_0_8px_#34D399]'
                             : 'w-2 h-2 rounded-full bg-gold';
-                        dot.title = user ? 'Connected & Signed In' : 'Firebase Ready · Sign in on Circle tab';
+                        dot.title = user ? 'Signed In & Unified Across Devices' : 'Firebase Ready · Sign in on Circle tab';
                     }
+
                     subscribeToCloudCircle();
-                    if (user) {
-                        syncMyScoreToCloud();
+
+                    if (user && !user.isAnonymous) {
+                        await reconcileUnifiedGoogleAccount(user);
+                    } else {
+                        updateAuthBarUI(null);
                     }
                 });
             } catch (err) {
                 console.warn('Firebase initialization warning:', err);
                 if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+            }
+        }
+
+        // CRITICAL FIX: Checks if this Google user already has an account in Firestore.
+        // If they exist -> logs them into their existing profile, restores their Friend Code & Habits,
+        // and cleans up any duplicate leaderboard rows created by previous random codes!
+        async function reconcileUnifiedGoogleAccount(user) {
+            if (!db || !user) return;
+            try {
+                const canonicalRef = doc(db, 'circle_scores', user.uid);
+                const canonicalSnap = await getDoc(canonicalRef);
+
+                // Also scan circle_scores for any older legacy documents belonging to this same Google UID
+                const allDocsSnap = await getDocs(collection(db, 'circle_scores'));
+                let legacyData = null;
+                const duplicateDocIdsToRemove = [];
+
+                allDocsSnap.forEach(dSnap => {
+                    const data = dSnap.data();
+                    if (data && data.uid === user.uid) {
+                        if (dSnap.id !== user.uid) {
+                            duplicateDocIdsToRemove.push(dSnap.id);
+                            if (!legacyData || (data.updatedAt || 0) > (legacyData.updatedAt || 0)) {
+                                legacyData = data;
+                            }
+                        }
+                    }
+                });
+
+                const existingData = canonicalSnap.exists() ? canonicalSnap.data() : legacyData;
+
+                // Determine single permanent Friend Code for this Google Account
+                const unifiedCode = (existingData && existingData.code)
+                    ? existingData.code
+                    : deriveDeterministicCodeFromUid(user.uid);
+
+                // Merge cloud habits + local habits so switching between Laptop & Phone keeps everything
+                if (existingData && Array.isArray(existingData.habits) && existingData.habits.length) {
+                    state.habits = mergeHabitLists(existingData.habits, state.habits);
+                }
+                if (existingData && Array.isArray(existingData.pinnedFriends)) {
+                    state.pinnedFriends = Array.from(new Set([...state.pinnedFriends, ...existingData.pinnedFriends]));
+                }
+
+                state.profile = {
+                    uid: user.uid,
+                    name: user.displayName || existingData?.name || 'Practitioner',
+                    code: unifiedCode,
+                    photoURL: user.photoURL || existingData?.photoURL || ''
+                };
+
+                saveState();
+                updateAuthBarUI(user);
+
+                // Remove any legacy duplicate entries from older random-code sessions
+                for (const dupId of duplicateDocIdsToRemove) {
+                    try { await deleteDoc(doc(db, 'circle_scores', dupId)); } catch (e) {}
+                }
+
+                // Push unified profile + habits to the canonical document keyed by user.uid
+                await syncMyScoreToCloud(false);
+
+                // Subscribe to live habit updates on this user's canonical document across devices
+                if (unsubscribeUserProfile) unsubscribeUserProfile();
+                unsubscribeUserProfile = onSnapshot(canonicalRef, (docSnap) => {
+                    if (!docSnap.exists()) return;
+                    const cloudData = docSnap.data();
+                    if (cloudData && Array.isArray(cloudData.habits)) {
+                        state.habits = mergeHabitLists(cloudData.habits, state.habits);
+                        if (cloudData.code) state.profile.code = cloudData.code;
+                        saveState();
+                        renderToday();
+                        renderMetrics();
+                    }
+                });
+
+                renderAll();
+            } catch (e) {
+                console.warn('Account reconciliation warning:', e);
+                updateAuthBarUI(user);
             }
         }
 
@@ -627,25 +756,23 @@
             const avatarEl = document.getElementById('authAvatar');
             const signInBtn = document.getElementById('googleSignInBtn');
             const signOutBtn = document.getElementById('signOutBtn');
+            const codeBadge = document.getElementById('myFriendCodeBadge');
+
+            if (codeBadge) codeBadge.textContent = state.profile.code;
 
             if (user && !user.isAnonymous) {
-                if (user.displayName) {
-                    state.profile.name = user.displayName;
-                    state.profile.photoURL = user.photoURL || '';
-                    saveState();
-                }
-                nameEl.textContent = user.displayName || state.profile.name || 'Signed In';
-                subEl.textContent = `Live Circle Sync Active · Share Code ${state.profile.code}`;
-                if (user.photoURL) {
-                    avatarEl.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar" />`;
+                nameEl.textContent = state.profile.name || user.displayName || 'Signed In';
+                subEl.textContent = `Unified Cloud Account · Code #${state.profile.code}`;
+                if (state.profile.photoURL || user.photoURL) {
+                    avatarEl.innerHTML = `<img src="${state.profile.photoURL || user.photoURL}" class="w-full h-full object-cover" alt="Avatar" />`;
                 } else {
-                    avatarEl.textContent = (user.displayName || 'M').charAt(0).toUpperCase();
+                    avatarEl.textContent = (state.profile.name || 'M').charAt(0).toUpperCase();
                 }
                 signInBtn.classList.add('hidden');
                 signOutBtn.classList.remove('hidden');
             } else {
                 nameEl.textContent = state.profile.name === 'You' ? 'Local Sanctuary' : state.profile.name;
-                subEl.textContent = 'Sign in with Google to sync your daily score with your Circle';
+                subEl.textContent = 'Sign in with Google to unify your account across laptop & mobile';
                 avatarEl.textContent = (state.profile.name || 'M').charAt(0).toUpperCase();
                 signInBtn.classList.remove('hidden');
                 signOutBtn.classList.add('hidden');
@@ -658,30 +785,37 @@
                 return;
             }
             if (window.location.protocol === 'file:') {
-                showToast('Open via localhost or your live URL to use Google Sign-In');
+                showToast('Open via your live URL or localhost to use Google Sign-In');
                 return;
             }
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
             try {
-                const provider = new GoogleAuthProvider();
                 const result = await signInWithPopup(auth, provider);
                 if (result.user) {
-                    state.profile.name = result.user.displayName || 'Practitioner';
-                    state.profile.photoURL = result.user.photoURL || '';
-                    saveState();
-                    updateAuthBarUI(result.user);
-                    await syncMyScoreToCloud(true);
-                    renderCircle();
+                    await reconcileUnifiedGoogleAccount(result.user);
+                    showToast(`Welcome back, ${state.profile.name}`);
                 }
             } catch (e) {
-                console.error('Google Sign-In error:', e);
-                showToast(`Sign-In Error: ${e.code || e.message}`);
+                // On strict mobile WebViews where popups are blocked, fall back to redirect
+                if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    console.error('Google Sign-In error:', e);
+                    showToast(`Sign-In: ${e.code || e.message}`);
+                }
             }
         };
 
         window.handleSignOut = async function() {
+            if (unsubscribeUserProfile) {
+                unsubscribeUserProfile();
+                unsubscribeUserProfile = null;
+            }
             if (auth) {
                 try { await signOut(auth); } catch (e) {}
             }
+            state.profile.uid = '';
             state.profile.name = 'You';
             state.profile.photoURL = '';
             saveState();
@@ -690,9 +824,11 @@
             showToast('Signed out');
         };
 
+        // Writes both leaderboard scores AND habits to `circle_scores/{user.uid}`
+        // Keying by `user.uid` guarantees 1 Google Account = 1 Leaderboard Entry forever.
         window.syncMyScoreToCloud = async function(manual = false) {
             if (!db || !currentUser) {
-                if (manual) showToast('Sign in with Google first to sync your score');
+                if (manual) showToast('Sign in with Google first to sync across devices');
                 return;
             }
             try {
@@ -702,9 +838,11 @@
                 const weeklyScore = computeWeeklyAggregateScore(new Date());
                 const bestStreak = state.habits.reduce((max, h) => Math.max(max, computeActiveStreak(h)), 0);
 
-                const memberRef = doc(db, 'circle_scores', state.profile.code);
+                // Canonical document ID is strictly currentUser.uid
+                const memberRef = doc(db, 'circle_scores', currentUser.uid);
                 await setDoc(memberRef, {
                     uid: currentUser.uid,
+                    email: currentUser.email || '',
                     code: state.profile.code,
                     name: state.profile.name === 'You' ? (currentUser.displayName || 'Practitioner') : state.profile.name,
                     photoURL: state.profile.photoURL || currentUser.photoURL || '',
@@ -712,12 +850,14 @@
                     weeklyScore,
                     streak: bestStreak,
                     habitCount: state.habits.length,
+                    habits: state.habits,
+                    pinnedFriends: state.pinnedFriends || [],
                     todayKey,
                     weekId,
                     updatedAt: Date.now()
                 }, { merge: true });
 
-                if (manual) showToast('Circle score synced to cloud');
+                if (manual) showToast('Account & Circle synced across all devices');
             } catch (e) {
                 console.warn('Cloud sync warning:', e);
                 if (manual) showToast('Sync blocked: Check Firestore Rules in Firebase Console');
@@ -732,24 +872,30 @@
                 unsubscribeLeaderboard = onSnapshot(colRef, (snapshot) => {
                     const currentWeek = getMondayISO(new Date());
                     const todayKey = getTodayISO();
-                    const cloudMembers = [];
+                    // Deduplicate by uid (or code if legacy) so each person only ever appears once
+                    const uniqueByUid = new Map();
+
                     snapshot.forEach(docSnap => {
                         const d = docSnap.data();
-                        if (d && d.code) {
-                            cloudMembers.push({
-                                code: d.code,
-                                name: d.name || 'Friend',
-                                photoURL: d.photoURL || '',
-                                dailyScore: d.todayKey === todayKey ? (d.dailyScore || 0) : 0,
-                                weeklyScore: d.weekId === currentWeek ? (d.weeklyScore || 0) : 0,
-                                streak: d.streak || 0
-                            });
+                        if (d && (d.uid || d.code)) {
+                            const key = d.uid || d.code;
+                            const existing = uniqueByUid.get(key);
+                            if (!existing || (d.updatedAt || 0) > (existing.updatedAt || 0)) {
+                                uniqueByUid.set(key, {
+                                    uid: d.uid || '',
+                                    code: d.code || deriveDeterministicCodeFromUid(key),
+                                    name: d.name || 'Friend',
+                                    photoURL: d.photoURL || '',
+                                    dailyScore: d.todayKey === todayKey ? (d.dailyScore || 0) : 0,
+                                    weeklyScore: d.weekId === currentWeek ? (d.weeklyScore || 0) : 0,
+                                    streak: d.streak || 0,
+                                    updatedAt: d.updatedAt || 0
+                                });
+                            }
                         }
                     });
-                    state.cloudCircle = cloudMembers;
+                    state.cloudCircle = Array.from(uniqueByUid.values());
                     renderCircle();
-                }, (err) => {
-                    console.warn('Firestore listener info:', err);
                 });
             } catch (e) {}
         }
@@ -766,33 +912,46 @@
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(528, now);
-                osc.frequency.exponentialRampToValueAtTime(531, now + 0.9);
+                osc.frequency.exponentialRampToValueAtTime(531, now + 0.85);
                 gain.gain.setValueAtTime(0.001, now);
-                gain.gain.linearRampToValueAtTime(0.11, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 1.15);
+                osc.stop(now + 1.05);
             } catch (e) {}
         }
 
         /***********************************************************************
-         * 6. UI RENDERING: TODAY, CIRCLE, METRICS
+         * 6. UI RENDERING: TODAY, CIRCLE, METRICS (MOBILE + DESKTOP)
          ***********************************************************************/
         window.switchTab = function(tab) {
             state.activeTab = tab;
             ['today', 'circle', 'metrics'].forEach(t => {
                 const section = document.getElementById(`tab-${t}`);
-                const btn = document.getElementById(`tabBtn-${t}`);
+                const deskBtn = document.getElementById(`tabBtn-${t}`);
+                const mobBtn = document.getElementById(`mobNav-${t}`);
                 if (t === tab) {
                     section.classList.remove('hidden');
-                    btn.classList.add('tab-btn-active');
-                    btn.classList.remove('text-muted');
+                    if (deskBtn) {
+                        deskBtn.classList.add('tab-btn-active');
+                        deskBtn.classList.remove('text-muted');
+                    }
+                    if (mobBtn) {
+                        mobBtn.classList.add('mobile-nav-active');
+                        mobBtn.classList.remove('text-muted');
+                    }
                 } else {
                     section.classList.add('hidden');
-                    btn.classList.remove('tab-btn-active');
-                    btn.classList.add('text-muted');
+                    if (deskBtn) {
+                        deskBtn.classList.remove('tab-btn-active');
+                        deskBtn.classList.add('text-muted');
+                    }
+                    if (mobBtn) {
+                        mobBtn.classList.remove('mobile-nav-active');
+                        mobBtn.classList.add('text-muted');
+                    }
                 }
             });
             renderAll();
@@ -864,8 +1023,8 @@
             const remaining = state.habits.filter(h => !h.history?.[todayKey]).length;
 
             document.getElementById('todayAggregateScore').textContent = dailyScore;
-            document.getElementById('todayWeeklyScore').textContent = `${weeklyScore} pts`;
-            document.getElementById('dueCounterBadge').textContent = remaining === 0 ? 'All aligned' : `${remaining} remaining`;
+            document.getElementById('todayWeeklyScore').innerHTML = `${weeklyScore} <span class="font-mono text-[10px] text-muted">pts</span>`;
+            document.getElementById('dueCounterBadge').textContent = remaining === 0 ? 'All aligned' : `${remaining} due`;
 
             const focusBtn = document.getElementById('modeBtn-focus');
             const listBtn = document.getElementById('modeBtn-list');
@@ -873,8 +1032,8 @@
             const listBox = document.getElementById('habitListContainer');
 
             if (state.reviewMode === 'focus') {
-                focusBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
-                listBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
+                focusBtn.className = 'flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
+                listBtn.className = 'flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
                 focusBox.classList.remove('hidden');
                 listBox.classList.add('hidden');
 
@@ -886,13 +1045,13 @@
 
                 if (remaining === 0) {
                     focusBox.innerHTML = `
-                        <div class="py-8 space-y-4">
+                        <div class="py-6 sm:py-8 space-y-4">
                             <div class="w-16 h-16 rounded-full bg-sage/15 border border-sage/40 text-sage mx-auto flex items-center justify-center text-2xl">✓</div>
                             <h3 class="font-serif text-3xl text-alabaster">Today's Sanctuary is Complete</h3>
-                            <p class="text-xs text-muted max-w-md mx-auto">You have achieved a 100/100 daily alignment score. Your standing in the Circle is locked in.</p>
+                            <p class="text-xs text-muted max-w-md mx-auto leading-relaxed">You have locked in a 100/100 daily alignment score. Your standing in the Circle is updated across all devices.</p>
                             <div class="pt-2">
-                                <button onclick="setReviewMode('list')" class="px-4 py-2 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 transition">
-                                    Review Completed List
+                                <button onclick="setReviewMode('list')" class="px-5 py-2.5 rounded-xl bg-stone border border-white/10 text-xs text-alabaster hover:border-gold/40 transition">
+                                    View Completed Rituals
                                 </button>
                             </div>
                         </div>
@@ -905,26 +1064,26 @@
                             <span class="uppercase tracking-widest text-gold">${current.category || 'Ritual'}</span>
                             <span>Streak · ${streak}d</span>
                         </div>
-                        <div class="py-6 space-y-3">
+                        <div class="py-4 sm:py-6 space-y-3">
                             <div class="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/30 text-gold mx-auto flex items-center justify-center text-2xl">
                                 ${current.icon || '✦'}
                             </div>
-                            <h3 class="font-serif text-3xl sm:text-4xl text-alabaster max-w-lg mx-auto leading-tight">${current.title}</h3>
+                            <h3 class="font-serif text-3xl sm:text-4xl text-alabaster max-w-lg mx-auto leading-tight px-2">${current.title}</h3>
                             <p class="text-xs text-muted">Mark complete once fulfilled for today</p>
                         </div>
-                        <div class="flex items-center justify-center gap-3 pt-2">
-                            <button onclick="skipCurrentFocusHabit('${current.id}')" class="px-5 py-3 rounded-2xl bg-stone border border-white/10 text-xs font-mono text-muted hover:text-alabaster transition">
-                                Later (1)
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2">
+                            <button onclick="completeCurrentFocusHabit('${current.id}')" class="order-1 sm:order-2 px-8 py-3.5 rounded-2xl bg-gold text-obsidian font-semibold text-xs tracking-wide active:scale-[0.99] transition gold-glow">
+                                Complete Ritual
                             </button>
-                            <button onclick="completeCurrentFocusHabit('${current.id}')" class="px-8 py-3 rounded-2xl bg-gold text-obsidian font-semibold text-xs tracking-wide hover:opacity-95 transition gold-glow">
-                                Complete Ritual (Space)
+                            <button onclick="skipCurrentFocusHabit('${current.id}')" class="order-2 sm:order-1 px-5 py-3 rounded-2xl bg-stone border border-white/10 text-xs font-mono text-muted hover:text-alabaster active:scale-[0.99] transition">
+                                Later
                             </button>
                         </div>
                     `;
                 }
             } else {
-                listBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
-                focusBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
+                listBtn.className = 'flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium bg-white/[0.08] text-alabaster transition';
+                focusBtn.className = 'flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-alabaster transition';
                 focusBox.classList.add('hidden');
                 listBox.classList.remove('hidden');
 
@@ -932,17 +1091,17 @@
                     const done = !!(h.history && h.history[todayKey]);
                     const streak = computeActiveStreak(h);
                     return `
-                        <div class="zen-card rounded-2xl p-4 flex items-center justify-between gap-4 transition ${done ? 'border-sage/30 bg-sage/[0.03]' : ''}">
-                            <button onclick="toggleHabitOnDate('${h.id}', '${todayKey}')" class="flex items-center gap-3.5 text-left flex-1">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base border transition ${done ? 'bg-sage text-obsidian border-sage font-bold' : 'bg-stone border-white/10 text-gold'}">
+                        <div class="zen-card rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition ${done ? 'border-sage/30 bg-sage/[0.03]' : ''}">
+                            <button onclick="toggleHabitOnDate('${h.id}', '${todayKey}')" class="flex items-center gap-3.5 text-left flex-1 min-w-0">
+                                <div class="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center text-base border transition ${done ? 'bg-sage text-obsidian border-sage font-bold' : 'bg-stone border-white/10 text-gold'}">
                                     ${done ? '✓' : (h.icon || '✦')}
                                 </div>
-                                <div>
-                                    <div class="text-sm font-medium ${done ? 'line-through text-muted' : 'text-alabaster'}">${h.title}</div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-medium truncate ${done ? 'line-through text-muted' : 'text-alabaster'}">${h.title}</div>
                                     <div class="font-mono text-[10px] text-muted uppercase tracking-wider mt-0.5">${h.category || 'Ritual'} · ${streak}d streak</div>
                                 </div>
                             </button>
-                            <button onclick="deleteHabit('${h.id}')" title="Remove Ritual" class="text-muted hover:text-rose-400 text-xs px-2 py-1">✕</button>
+                            <button onclick="deleteHabit('${h.id}')" title="Remove Ritual" class="w-8 h-8 rounded-lg text-muted hover:text-rose-400 text-xs flex items-center justify-center shrink-0">✕</button>
                         </div>
                     `;
                 }).join('');
@@ -952,7 +1111,10 @@
         function renderCircle() {
             const listEl = document.getElementById('circleLeaderboardList');
             const todayKey = getTodayISO();
+            const myKey = currentUser?.uid || state.profile.uid || state.profile.code;
+
             const myEntry = {
+                uid: currentUser?.uid || state.profile.uid || '',
                 code: state.profile.code,
                 name: state.profile.name === 'You' ? 'You' : state.profile.name,
                 photoURL: state.profile.photoURL || '',
@@ -963,12 +1125,15 @@
             };
 
             const mergedMap = new Map();
-            mergedMap.set(myEntry.code, myEntry);
+            mergedMap.set(myKey, myEntry);
+
             (state.cloudCircle || []).forEach(m => {
-                if (m.code === myEntry.code) {
-                    mergedMap.set(m.code, { ...m, ...myEntry, isMe: true });
+                const mKey = m.uid || m.code;
+                const isSameUser = (currentUser && m.uid === currentUser.uid) || (m.code === state.profile.code);
+                if (isSameUser) {
+                    mergedMap.set(myKey, { ...m, ...myEntry, isMe: true });
                 } else {
-                    mergedMap.set(m.code, m);
+                    mergedMap.set(mKey, m);
                 }
             });
 
@@ -977,23 +1142,23 @@
             listEl.innerHTML = sorted.map((m, idx) => {
                 const isPinned = state.pinnedFriends.includes(m.code);
                 return `
-                    <div class="p-4 rounded-2xl border transition flex items-center justify-between ${m.isMe ? 'bg-gold/[0.07] border-gold/40' : isPinned ? 'bg-white/[0.04] border-white/20' : 'bg-stone/70 border-white/[0.06]'}">
-                        <div class="flex items-center gap-3.5">
-                            <span class="font-serif text-xl w-6 text-center ${idx === 0 ? 'text-gold' : 'text-muted'}">${idx + 1}</span>
-                            <div class="w-10 h-10 rounded-full bg-obsidian border border-white/10 flex items-center justify-center font-serif text-base text-gold overflow-hidden">
+                    <div class="p-3.5 sm:p-4 rounded-2xl border transition flex items-center justify-between gap-3 ${m.isMe ? 'bg-gold/[0.08] border-gold/40' : isPinned ? 'bg-white/[0.04] border-white/20' : 'bg-stone/70 border-white/[0.06]'}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="font-serif text-xl w-5 text-center shrink-0 ${idx === 0 ? 'text-gold' : 'text-muted'}">${idx + 1}</span>
+                            <div class="w-10 h-10 rounded-full bg-obsidian border border-white/10 flex items-center justify-center font-serif text-base text-gold overflow-hidden shrink-0">
                                 ${m.photoURL ? `<img src="${m.photoURL}" class="w-full h-full object-cover" />` : (m.name || 'M').charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-medium text-alabaster">${m.name}</span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-sm font-medium text-alabaster truncate">${m.name}</span>
                                     <span class="font-mono text-[10px] text-muted">#${m.code}</span>
                                 </div>
-                                <div class="font-mono text-[11px] text-muted mt-0.5">Best Streak: ${m.streak || 0}d</div>
+                                <div class="font-mono text-[10px] text-muted mt-0.5">Streak: ${m.streak || 0}d</div>
                             </div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right shrink-0">
                             <div class="font-serif text-2xl text-gold leading-none">${m.weeklyScore || 0} <span class="font-mono text-[10px] text-muted">wk</span></div>
-                            <div class="font-mono text-[11px] text-sage mt-1">Today: ${m.dailyScore || 0}/100</div>
+                            <div class="font-mono text-[10px] text-sage mt-1">Today: ${m.dailyScore || 0}/100</div>
                         </div>
                     </div>
                 `;
@@ -1007,7 +1172,6 @@
                 totalCheckins += Object.keys(h.history || {}).filter(k => h.history[k]).length;
             });
 
-            // 7-day dates ending today
             const last7 = [];
             for (let i = 6; i >= 0; i--) {
                 const d = new Date();
@@ -1031,7 +1195,34 @@
             document.getElementById('metricWeeklyRate').textContent = `${Math.round((done7 / possible7) * 100)}%`;
             document.getElementById('metricTotalCheckins').textContent = totalCheckins;
 
-            // Render 7-Day Matrix
+            // Mobile 7-Day Tap Strip Cards (No Horizontal Scroll!)
+            const mobileCards = document.getElementById('mobileMatrixCards');
+            if (mobileCards) {
+                mobileCards.innerHTML = state.habits.map(h => {
+                    const streak = computeActiveStreak(h);
+                    return `
+                        <div class="p-3.5 rounded-2xl bg-stone/80 border border-white/[0.06] space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-alabaster truncate pr-2">${h.icon || '✦'} ${h.title}</span>
+                                <span class="font-mono text-[10px] text-gold shrink-0">${streak}d</span>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1.5">
+                                ${last7.map(d => {
+                                    const checked = !!(h.history && h.history[d.iso]);
+                                    return `
+                                        <button onclick="toggleHabitOnDate('${h.id}', '${d.iso}')" class="py-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${checked ? 'bg-gold text-obsidian border-gold font-bold' : 'bg-obsidian/80 border-white/[0.08] text-muted'}">
+                                            <span class="font-mono text-[9px] uppercase opacity-75">${d.label}</span>
+                                            <span class="font-mono text-[11px]">${checked ? '✓' : d.dayNum}</span>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Desktop 7-Day Matrix Table
             const headerRow = document.getElementById('matrixHeaderRow');
             headerRow.innerHTML = `<th class="py-2 pr-4">Ritual</th>` + last7.map(d => `
                 <th class="py-2 px-2 text-center">${d.label}<br/><span class="text-alabaster">${d.dayNum}</span></th>
@@ -1068,7 +1259,7 @@
                 else if (score > 0) bg = 'bg-gold/15 text-alabaster border-gold/30';
 
                 cells.push(`
-                    <div class="h-10 rounded-xl border ${bg} flex flex-col items-center justify-center font-mono text-[10px]" title="${iso}: ${score}/100">
+                    <div class="h-9 sm:h-10 rounded-xl border ${bg} flex flex-col items-center justify-center font-mono text-[10px]" title="${iso}: ${score}/100">
                         <span>${d.getDate()}</span>
                     </div>
                 `);
@@ -1129,16 +1320,27 @@
             if (!state.pinnedFriends.includes(code)) {
                 state.pinnedFriends.push(code);
                 saveState();
+                syncMyScoreToCloud();
             }
             input.value = '';
             renderCircle();
-            showToast(`Friend code #${code} pinned to Circle`);
+            showToast(`Friend #${code} pinned to Circle`);
         };
 
-        window.copyInviteLink = function() {
+        window.copyInviteLink = async function() {
             const url = `${window.location.origin}${window.location.pathname}?friend=${state.profile.code}`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Join my Momentum Circle',
+                        text: `Join my daily habit Circle on Momentum (Code #${state.profile.code})`,
+                        url
+                    });
+                    return;
+                } catch (e) {}
+            }
             navigator.clipboard.writeText(url);
-            showToast(`Invite link with code #${state.profile.code} copied`);
+            showToast(`Invite link (#${state.profile.code}) copied`);
         };
 
         function showToast(msg) {
@@ -1163,7 +1365,6 @@
             const mEl = document.getElementById('midnightCountdown');
             if (mEl) mEl.textContent = `${hrs}:${mins}:${secs}`;
 
-            // Next Monday 00:00
             const nextMon = new Date(now);
             const day = nextMon.getDay();
             const daysUntilMon = day === 0 ? 1 : 8 - day;
@@ -1192,13 +1393,11 @@
         });
 
         // Boot
-        generateZenAppIcon();
         loadState();
         document.getElementById('headerDateLabel').textContent = new Date().toLocaleDateString('en-US', {
             weekday: 'short', month: 'short', day: 'numeric'
         });
 
-        // Check URL for friend invite parameter
         const params = new URLSearchParams(window.location.search);
         const invitedFriend = params.get('friend');
         if (invitedFriend && !state.pinnedFriends.includes(invitedFriend.toUpperCase())) {
