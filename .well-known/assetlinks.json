@@ -1,0 +1,12 @@
+﻿[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.momentum_six_sandy.twa",
+      "sha256_cert_fingerprints": [
+        "D7:A9:0A:BE:02:C5:4C:09:68:D0:D6:43:F2:14:CF:4A:B3:F4:9B:55:A3:32:07:D2:5F:A9:B9:2F:4F:85:97:33"
+      ]
+    }
+  }
+]
