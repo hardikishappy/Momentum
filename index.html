@@ -166,7 +166,7 @@
                         <span id="dueCounterBadge" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-muted">0 remaining</span>
                     </div>
                     <h2 id="zenGreeting" class="font-serif text-3xl sm:text-4xl text-alabaster tracking-normal leading-tight">Quiet consistency compounds.</h2>
-                    <p class="text-xs text-muted leading-relaxed">Complete your daily rituals before midnight to lock in your Circle standing.</p>
+                    <p class="text-xs text-muted leading-relaxed">Complete your daily rituals before 4:00 AM to lock in your Circle standing.</p>
                 </div>
 
                 <!-- Daily Aggregate Score Pill -->
@@ -252,7 +252,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div class="zen-card rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                        <span class="font-mono text-[10px] uppercase tracking-widest text-muted block">Midnight Score Lock</span>
+                        <span class="font-mono text-[10px] uppercase tracking-widest text-muted block">4:00 AM Score Lock</span>
                         <span id="midnightCountdown" class="font-mono text-lg text-alabaster mt-0.5 block">00:00:00</span>
                     </div>
                     <div class="text-right">
@@ -462,11 +462,16 @@
             return `${yr}-${mo}-${da}`;
         }
 
-        function getTodayISO() {
-            return formatLocalISO(new Date());
+        // Shifts the active date window back by 4 hours so the day ends at 4:00 AM instead of midnight
+        function getEffectiveDate() {
+            return new Date(Date.now() - 4 * 60 * 60 * 1000);
         }
 
-        function getMondayISO(refDate = new Date()) {
+        function getTodayISO() {
+            return formatLocalISO(getEffectiveDate());
+        }
+
+        function getMondayISO(refDate = getEffectiveDate()) {
             const d = new Date(refDate);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
@@ -1356,23 +1361,32 @@
 
         function updateCountdowns() {
             const now = new Date();
-            const midnight = new Date(now);
-            midnight.setHours(24, 0, 0, 0);
-            const diffMs = midnight - now;
+            
+            // Calculate next 4:00 AM lock time
+            const lockTime = new Date(now);
+            if (now.getHours() >= 4) {
+                lockTime.setDate(lockTime.getDate() + 1);
+            }
+            lockTime.setHours(4, 0, 0, 0);
+
+            const diffMs = lockTime - now;
             const hrs = String(Math.floor(diffMs / 3600000)).padStart(2, '0');
             const mins = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
             const secs = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, '0');
             const mEl = document.getElementById('midnightCountdown');
             if (mEl) mEl.textContent = `${hrs}:${mins}:${secs}`;
 
-            const nextMon = new Date(now);
+            // Next Monday 04:00 AM weekly reset
+            const effDate = getEffectiveDate();
+            const nextMon = new Date(effDate);
             const day = nextMon.getDay();
             const daysUntilMon = day === 0 ? 1 : 8 - day;
-            nextMon.setDate(now.getDate() + daysUntilMon);
-            nextMon.setHours(0, 0, 0, 0);
+            nextMon.setDate(effDate.getDate() + daysUntilMon);
+            nextMon.setHours(4, 0, 0, 0);
+            
             const wDiff = nextMon - now;
-            const dLeft = Math.floor(wDiff / 86400000);
-            const hLeft = Math.floor((wDiff % 86400000) / 3600000);
+            const dLeft = Math.max(0, Math.floor(wDiff / 86400000));
+            const hLeft = Math.max(0, Math.floor((wDiff % 86400000) / 3600000));
             const wEl = document.getElementById('weeklyResetCountdown');
             if (wEl) wEl.textContent = `${dLeft}d ${hLeft}h`;
         }
